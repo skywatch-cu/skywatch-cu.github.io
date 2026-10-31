@@ -1,0 +1,9 @@
+;Vaisala Ceilometer CL31 unit ID:0 Serial No:91510010 SW Version: 1.70
+;Date 2026/10/30 (local day yyyy/mm/dd)
+;Start Time  12:00:52 AM (local mountain time hh:mm:ss)
+;Ceilometer recording
+;Time (UTC)	Cloud base 1(m)	Cloud base 2(m)	Cloud base 3(m)	Reflectivity at 0(m)	10	20	30
+06:00:52	0.000000	0.000000	0.000000	0.056000	0.052000	0.052000	0.052000
+06:01:52	0.000000	0.000000	0.000000	0.057000	0.052000	0.052000	0.051000
+06:02:52	0.000000	0.000000	0.000000	0.049000	0.052000	0.052000	0.051000
+06:03:52	0.000000	0.000000	0.000000	0.061000	0.053000	0.052000	0.052000

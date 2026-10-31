@@ -1,0 +1,158 @@
+---
+/**
+ * Interactive 24 h time series (uPlot) from one or more public/data/series/<id>.json files.
+ * Series from different instruments are aligned on their shared 1-min bin times.
+ */
+import { getSnapshot } from '../lib/snapshot.ts';
+
+interface Props {
+  /** Instrument ids, each optionally restricted to some field keys. */
+  sources: { id: string; keys?: string[] }[];
+  caption: string;
+  yLabel: string;
+  height?: number;
+  /** Clamp the lower bound of the y-axis at zero (irradiance, accumulation). */
+  zeroFloor?: boolean;
+  /** Draw unconnected points: for discrete detections such as cloud base. */
+  points?: boolean;
+}
+const { sources, caption, yLabel, height = 280, zeroFloor = false, points = false } = Astro.props;
+const snap = getSnapshot();
+const config = sources.map((s) => ({
+  ...s,
+  v: snap.series[s.id]?.generatedAt ?? snap.fetchedAt,
+}));
+---
+
+<figure class="ts" data-config={JSON.stringify({ sources: config, yLabel, height, zeroFloor, points })}>
+  <div class="ts-plot" style={`min-height:${height + 40}px`}>
+    <p class="ts-status muted small">Loading the last 24 hours…</p>
+  </div>
+  <figcaption>{caption} Times are Mountain time.</figcaption>
+</figure>
+
+<script>
+  import uPlot from 'uplot';
+  import 'uplot/dist/uPlot.min.css';
+  import type { SeriesFile } from '../lib/types.ts';
+
+  interface Config {
+    sources: { id: string; keys?: string[]; v: string }[];
+    yLabel: string;
+    height: number;
+    zeroFloor: boolean;
+    points: boolean;
+  }
+
+  const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  const fmtTime = (ts: number) =>
+    new Date(ts * 1000).toLocaleTimeString('en-US', { timeZone: 'America/Denver', hour: 'numeric', minute: '2-digit' });
+
+  async function mount(fig: HTMLElement) {
+    const cfg: Config = JSON.parse(fig.dataset.config!);
+    const host = fig.querySelector<HTMLElement>('.ts-plot')!;
+    let files: SeriesFile[];
+    try {
+      files = await Promise.all(
+        cfg.sources.map((s) =>
+          fetch(`/data/series/${s.id}.json?v=${encodeURIComponent(s.v)}`).then((r) => {
+            if (!r.ok) throw new Error(`${s.id}: HTTP ${r.status}`);
+            return r.json();
+          }),
+        ),
+      );
+    } catch {
+      host.innerHTML =
+        '<p class="ts-status muted small">This chart’s data didn’t load. Reload the page, or use the daily plot below.</p>';
+      return;
+    }
+
+    const picked = files.flatMap((f, i) =>
+      f.fields
+        .filter((fl) => !cfg.sources[i].keys || cfg.sources[i].keys!.includes(fl.key))
+        .map((fl) => ({ field: fl, t: f.t, y: f.data[fl.key] })),
+    );
+    // Align all series on the union of their bin times (null where a series has no sample).
+    const aligned = uPlot.join(picked.map((p) => [p.t, p.y] as uPlot.AlignedData));
+    const unit = picked[0]?.field.unit ?? '';
+
+    const build = () => {
+      const ink = css('--ink-soft');
+      const grid = css('--rule');
+      const opts: uPlot.Options = {
+        width: host.clientWidth,
+        height: cfg.height,
+        tzDate: (ts) => uPlot.tzDate(new Date(ts * 1e3), 'America/Denver'),
+        cursor: { drag: { x: true, y: false }, points: { size: 7 } },
+        legend: { live: true },
+        scales: {
+          x: { time: true },
+          y: cfg.zeroFloor ? { range: (_u, _min, max) => [0, Math.max(1, max * 1.05)] } : {},
+        },
+        axes: [
+          { stroke: ink, grid: { stroke: grid, width: 1 }, ticks: { stroke: grid } },
+          {
+            stroke: ink,
+            grid: { stroke: grid, width: 1 },
+            ticks: { stroke: grid },
+            label: `${cfg.yLabel} (${unit})`,
+            labelSize: 24,
+            size: 56,
+          },
+        ],
+        series: [
+          { label: 'Time', value: (_u, v) => (v == null ? '–' : fmtTime(v)) },
+          ...picked.map((p) => ({
+            label: p.field.label,
+            stroke: css(p.field.color),
+            width: 1.75,
+            spanGaps: false,
+            ...(cfg.points
+              ? { paths: () => null, points: { show: true, size: 3, width: 0, fill: css(p.field.color) } }
+              : {}),
+            value: (_u: uPlot, v: number | null) => (v == null ? '–' : `${v.toFixed(1)} ${p.field.unit}`),
+          })),
+        ],
+      };
+      host.replaceChildren();
+      return new uPlot(opts, aligned, host);
+    };
+
+    let plot = build();
+    new ResizeObserver(() => plot.setSize({ width: host.clientWidth, height: cfg.height })).observe(host);
+    window.addEventListener('themechange', () => {
+      plot.destroy();
+      plot = build();
+    });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      plot.destroy();
+      plot = build();
+    });
+  }
+
+  document.querySelectorAll<HTMLElement>('figure.ts').forEach(mount);
+</script>
+
+<style>
+  .ts {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 1rem 1rem 0.75rem;
+  }
+  .ts-plot {
+    width: 100%;
+    min-width: 0;
+  }
+  .ts :global(.u-legend) {
+    font-size: var(--step--1);
+    color: var(--ink);
+    text-align: left;
+  }
+  .ts :global(.u-legend .u-marker) {
+    border-radius: 2px;
+  }
+  .ts :global(.u-select) {
+    background: color-mix(in srgb, var(--gold) 25%, transparent);
+  }
+</style>

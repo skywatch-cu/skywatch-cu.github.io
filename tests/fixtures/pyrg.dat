@@ -1,0 +1,12 @@
+;Pyrgeometer
+;Date 2026/10/30 (local day yyyy/mm/dd)
+;Start Time  12:00:03 AM (local mountain time hh:mm:ss)
+;Sensitivity Value 75930W/m^2/V with electrical offset of -0.000464679 V and temp offset of -0.000466486 V 
+;Time (UTC)	Irradiance (W/m^2)	Voltage (V)	Temperature (K)	Temperature (V)
+
+06:00:03	272.011159	-0.000890	278.194268	1.244506
+06:00:13	269.475436	-0.000923	278.186149	1.244835
+06:00:23	264.443643	-0.000989	278.178033	1.245163
+23:59:57	306.237651	-0.000989	286.369614	0.948290
+00:00:07	293.730032	-0.001153	286.364506	0.948454
+00:46:58	289.305356	-0.001022	283.619887	1.040355

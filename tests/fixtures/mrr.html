@@ -1,0 +1,27 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="refresh" content="300"/>
+<title>Micro Rain Radar Measurements</title>
+<!-- The MRR data storage is different than other Skywatch instruments.  Data is stored and plotted from 0 to 23:59 utc, 
+therefore we need contruct files names based on utc not local time as is typical --> 
+<!--
+The "img.fit" code was added to ensure that the plots would always fit on the page, and thus a person wouldn't
+need to scroll up and down in order to see the entire plot (including titles and color bars. -JN 
+-->
+<style>
+img.fit {
+  max-width: 100%;
+  max-height: 100%;
+}
+</style>
+</head>
+<body bgcolor="">
+<div align="center" style="background-color:#CCCCCC;">     
+    <img class="fit" src=/data/mrr/mrr_avg_Fallvelocity_26_10_31.png alt="Hydrometeor Fall Velocity, latest 24 hour time series" name="fall_png">
+    <img class="fit" src=/data/mrr/mrr_avg_Z_26_10_31.png alt="Radar Reflectivity, latest 24 hour time series" name="reflect_png">
+    <img class="fit" src=/data/mrr/mrr_avg_LWC_26_10_31.png alt="Liquid Water Content, latest 24 hour time series" name="lwc_png">
+    <img class="fit" src=/data/mrr/mrr_avg_RR_26_10_31.png  alt="Rain Rate, latest 24 hour time series" name="rr_png">
+</div>
+</body>
+</html>

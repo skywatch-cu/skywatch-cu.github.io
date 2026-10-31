@@ -1,0 +1,83 @@
+---
+import Base from '../../layouts/Base.astro';
+import { CATEGORY_LABEL, INSTRUMENTS, type Category } from '../../data/instruments.ts';
+
+const categories = Object.keys(CATEGORY_LABEL) as Category[];
+---
+
+<Base title="Instruments" description="The Skywatch Observatory instrument suite: radiometers, ceilometer, sun photometer, precipitation sensors and ozone monitor.">
+  <div class="wrap section">
+    <h1>Instruments</h1>
+    <p class="lede">
+      Ten instruments sample the surface radiation budget, clouds, precipitation and ozone. The
+      all-sky and Front Range cameras are on the <a href="/sky/">Sky</a> page.
+    </p>
+
+    {
+      categories.map((c) => (
+        <section class="cat" aria-labelledby={`cat-${c}`}>
+          <h2 id={`cat-${c}`}>{CATEGORY_LABEL[c]}</h2>
+          <ul class="list">
+            {INSTRUMENTS.filter((i) => i.category === c).map((i) => (
+              <li>
+                <a href={`/instruments/${i.id}/`}>
+                  <span class="name">{i.name}</span>
+                  <span class="model">{i.model}</span>
+                </a>
+                <p>{i.measures}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Base>
+
+<style>
+  .cat {
+    margin-top: 2.5rem;
+  }
+  .cat h2 {
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--zenith);
+  }
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0 2.5rem;
+  }
+  @media (min-width: 52rem) {
+    .list {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  .list li {
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .list a {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    text-decoration: none;
+  }
+  .name {
+    font-size: var(--step-1);
+    font-weight: 600;
+  }
+  .list a:hover .name {
+    text-decoration: underline;
+  }
+  .model {
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+  }
+  .list p {
+    margin: 0.35rem 0 0;
+    color: var(--ink-soft);
+  }
+</style>

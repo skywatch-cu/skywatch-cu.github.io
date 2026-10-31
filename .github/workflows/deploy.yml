@@ -1,0 +1,65 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [main]
+  # Refresh readings, series and today's plot links from the legacy server.
+  # GitHub may delay scheduled runs by several minutes under load.
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm test
+
+      # Restore the last good snapshot so a legacy-server outage keeps serving stale data
+      # instead of an empty site. A fresh cache entry is saved at the end of every run.
+      - name: Restore last data snapshot
+        uses: actions/cache@v4
+        with:
+          path: |
+            .cache
+            public/data/series
+          key: skywatch-data-${{ github.run_id }}
+          restore-keys: skywatch-data-
+
+      - name: Fetch data from skywatch.colorado.edu
+        run: npm run fetch-data
+
+      - run: npx astro build
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

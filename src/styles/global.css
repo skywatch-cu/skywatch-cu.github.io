@@ -1,0 +1,213 @@
+/*
+ * Palette drawn from the sky over the Front Range: zenith blue for structure, a pale
+ * horizon for the page, CU gold reserved for the sun-related series and focus.
+ * Series colours are tokens so charts follow the theme.
+ */
+:root {
+  --bg: #eef2f6; /* horizon haze */
+  --surface: #ffffff;
+  --ink: #14202e;
+  --ink-soft: #46576b;
+  --rule: #cfd8e2;
+  --zenith: #17375e; /* deep high-altitude blue */
+  --header-bg: #17375e;
+  --link: #1d4f8a;
+  --gold: #cfb87c; /* CU gold */
+  --warn: #9a4b00;
+
+  --c-sw: #c98a12; /* solar */
+  --c-diffuse: #7b8fa6;
+  --c-lw: #b2402c; /* thermal */
+  --c-lw-up: #6d2c87;
+  --c-o3: #2e7d5b;
+  --c-precip: #2563b0;
+  --c-cloud: #36475c;
+  --c-cloud-2: #7d8ea3;
+  --c-cloud-3: #a9b6c6;
+  --c-muted: #8e9aa8;
+  --c-ink: #14202e;
+
+  --font: 'Instrument Sans Variable', 'Helvetica Neue', Arial, sans-serif;
+  --step--1: 0.833rem;
+  --step-0: 1rem;
+  --step-1: 1.25rem;
+  --step-2: 1.563rem;
+  --step-3: 1.953rem;
+  --step-4: 2.441rem;
+  --measure: 68ch;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --radius: 6px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0c1a2b; /* night sky over Boulder, not black */
+    --surface: #13263b;
+    --ink: #e4eaf1;
+    --ink-soft: #a5b3c3;
+    --rule: #26405c;
+    --zenith: #9cc1ea;
+    --header-bg: #0a2340;
+    --link: #9cc1ea;
+    --warn: #f0a35a;
+    --c-sw: #e8b34a;
+    --c-diffuse: #a8b9cc;
+    --c-lw: #f07c62;
+    --c-lw-up: #c49be0;
+    --c-o3: #5fc79a;
+    --c-precip: #6fa8ef;
+    --c-cloud: #dce5ef;
+    --c-cloud-2: #9fb0c4;
+    --c-cloud-3: #6f8399;
+    --c-ink: #e4eaf1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --bg: #0c1a2b;
+  --surface: #13263b;
+  --ink: #e4eaf1;
+  --ink-soft: #a5b3c3;
+  --rule: #26405c;
+  --zenith: #9cc1ea;
+  --header-bg: #0a2340;
+  --link: #9cc1ea;
+  --warn: #f0a35a;
+  --c-sw: #e8b34a;
+  --c-diffuse: #a8b9cc;
+  --c-lw: #f07c62;
+  --c-lw-up: #c49be0;
+  --c-o3: #5fc79a;
+  --c-precip: #6fa8ef;
+  --c-cloud: #dce5ef;
+  --c-cloud-2: #9fb0c4;
+  --c-cloud-3: #6f8399;
+  --c-ink: #e4eaf1;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5em;
+}
+h1 {
+  font-size: var(--step-4);
+  font-weight: 550;
+  letter-spacing: -0.025em;
+}
+h2 {
+  font-size: var(--step-2);
+}
+h3 {
+  font-size: var(--step-1);
+}
+p {
+  margin: 0 0 1em;
+  max-width: var(--measure);
+}
+
+a {
+  color: var(--link);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.wrap {
+  width: min(100% - 2 * var(--gutter), 76rem);
+  margin-inline: auto;
+}
+
+.lede {
+  font-size: var(--step-1);
+  color: var(--ink-soft);
+  max-width: 52ch;
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+.small {
+  font-size: var(--step--1);
+}
+
+.section {
+  padding-block: clamp(2rem, 5vw, 3.5rem);
+}
+.section + .section {
+  border-top: 1px solid var(--rule);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.stale {
+  color: var(--warn);
+}
+
+/* Legacy server-rendered PNGs: white backgrounds, so frame them in dark mode. */
+.plot-img {
+  display: block;
+  width: 100%;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+figure {
+  margin: 0;
+}
+figcaption {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  margin-top: 0.5rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

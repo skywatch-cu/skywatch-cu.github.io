@@ -1,0 +1,274 @@
+---
+import '@fontsource-variable/instrument-sans';
+import '../styles/global.css';
+import { STATION } from '../data/instruments.ts';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+const { title, description = 'Live surface radiation, cloud, precipitation and ozone observations from the CU Boulder ATOC Skywatch Observatory.' } = Astro.props;
+const pageTitle = title ? `${title} | Skywatch Observatory` : 'Skywatch Observatory | CU Boulder ATOC';
+
+const nav = [
+  { href: '/', label: 'Now' },
+  { href: '/instruments/', label: 'Instruments' },
+  { href: '/sky/', label: 'Sky' },
+  { href: '/archive/', label: 'Archive' },
+  { href: '/about/', label: 'About' },
+];
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#17375e" />
+    <link rel="canonical" href={new URL(path, Astro.site)} />
+    <script is:inline>
+      try {
+        const t = localStorage.getItem('theme');
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="/">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <circle cx="16" cy="16" r="14" fill="none" stroke="currentColor" stroke-width="2"></circle>
+            <path d="M2 18h28" stroke="currentColor" stroke-width="2"></path>
+            <circle cx="21" cy="11" r="3.2" fill="var(--gold)"></circle>
+          </svg>
+          <span>
+            <strong>Skywatch Observatory</strong>
+            <small>Atmospheric and Oceanic Sciences, CU Boulder</small>
+          </span>
+        </a>
+        <button class="menu-btn" aria-expanded="false" aria-controls="site-nav">Menu</button>
+        <nav id="site-nav" class="site-nav" aria-label="Main">
+          <ul>
+            {
+              nav.map((n) => (
+                <li>
+                  <a href={n.href} aria-current={isCurrent(n.href) ? 'page' : undefined}>
+                    {n.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+          <button class="theme-btn" type="button" aria-label="Switch colour theme">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9A7 7 0 0 1 12 3z" fill="currentColor"></path></svg>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div>
+          <p>
+            <strong>{STATION.name}</strong><br />
+            {STATION.place}<br />
+            {STATION.lat.toFixed(2)}° N, {Math.abs(STATION.lon).toFixed(2)}° W, {STATION.elevationM} m above sea level
+          </p>
+          <p>
+            Department of Atmospheric and Oceanic Sciences, (303) 492-7167<br />
+            <a href={`mailto:${STATION.email}`}>{STATION.email}</a>
+          </p>
+        </div>
+        <div class="logos">
+          <a href="https://www.colorado.edu/"><img src="/images/cu_logo.png" alt="University of Colorado Boulder" width="150" height="31" loading="lazy" /></a>
+          <a href="https://www.colorado.edu/atoc/"><img src="/images/atoc_logo.png" alt="ATOC" width="56" height="56" loading="lazy" /></a>
+          <img src="/images/nsf1.png" alt="National Science Foundation" width="56" height="56" loading="lazy" />
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const btn = document.querySelector<HTMLButtonElement>('.menu-btn')!;
+      const nav = document.getElementById('site-nav')!;
+      btn.addEventListener('click', () => {
+        const open = btn.getAttribute('aria-expanded') !== 'true';
+        btn.setAttribute('aria-expanded', String(open));
+        nav.classList.toggle('open', open);
+      });
+
+      const root = document.documentElement;
+      document.querySelector('.theme-btn')!.addEventListener('click', () => {
+        const dark =
+          root.dataset.theme === 'dark' ||
+          (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = dark ? 'light' : 'dark';
+        root.dataset.theme = next;
+        try {
+          localStorage.setItem('theme', next);
+        } catch {}
+        window.dispatchEvent(new CustomEvent('themechange'));
+      });
+    </script>
+  </body>
+</html>
+
+<style>
+  .skip {
+    position: absolute;
+    left: -999px;
+  }
+  .skip:focus {
+    left: 1rem;
+    top: 1rem;
+    z-index: 10;
+    background: var(--surface);
+    padding: 0.5rem 1rem;
+  }
+
+  .site-header {
+    background: var(--header-bg);
+    color: #fff;
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 4rem;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: inherit;
+    text-decoration: none;
+    flex: 1 1 0;
+    min-width: 0;
+    padding-block: 0.6rem;
+  }
+  .brand-mark {
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+  }
+  .brand strong {
+    display: block;
+    font-size: var(--step-1);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+  }
+  .brand small {
+    display: block;
+    font-size: var(--step--1);
+    opacity: 0.8;
+  }
+
+  .menu-btn,
+  .theme-btn {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 1px solid rgb(255 255 255 / 0.4);
+    border-radius: var(--radius);
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+  }
+  .theme-btn {
+    display: grid;
+    place-items: center;
+    padding: 0.4rem;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  .theme-btn svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .site-nav {
+    display: none;
+    width: 100%;
+    padding-bottom: 0.75rem;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .site-nav.open {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .site-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  .site-nav a {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+    padding: 0.6rem 0.25rem;
+    border-bottom: 2px solid transparent;
+  }
+  .site-nav a[aria-current='page'] {
+    border-bottom-color: var(--gold);
+  }
+
+  @media (min-width: 52rem) {
+    .menu-btn {
+      display: none;
+    }
+    .site-nav {
+      display: flex;
+      width: auto;
+      padding: 0;
+    }
+    .site-nav ul {
+      flex-direction: row;
+      width: auto;
+      gap: 0.25rem;
+    }
+    .site-nav a {
+      padding: 0.5rem 0.7rem;
+    }
+  }
+
+  .site-footer {
+    margin-top: 3rem;
+    padding-block: 2rem;
+    border-top: 1px solid var(--rule);
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+  }
+  .footer-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+  .logos {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .logos img {
+    display: block;
+    background: #fff;
+    border-radius: 4px;
+    padding: 2px;
+  }
+</style>

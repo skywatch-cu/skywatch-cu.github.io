@@ -1,0 +1,153 @@
+---
+import Base from '../layouts/Base.astro';
+import { ARCHIVE_PRODUCTS } from '../data/instruments.ts';
+import { LEGACY_ORIGIN } from '../lib/legacy.ts';
+import { getSnapshot } from '../lib/snapshot.ts';
+
+const events = getSnapshot().events;
+const soundings = events.filter((e) => e.kind === 'sounding').reverse();
+const cases = events.filter((e) => e.kind === 'case');
+const pretty = (label: string) => {
+  const m = /(\d{4})_(\d{2})_(\d{2})(?:_(\d{2})(\d{2}))?/.exec(label);
+  return m ? `${m[1]}-${m[2]}-${m[3]}${m[4] ? ` ${m[4]}:${m[5]} UTC` : ''}` : label;
+};
+---
+
+<Base title="Archive" description="Daily plots and raw data from the Skywatch Observatory, 2009 to present.">
+  <div class="wrap section">
+    <h1>Archive</h1>
+    <p class="lede">Daily plots and raw data files for each instrument, from 2009 to today.</p>
+
+    <form class="picker" action={`${LEGACY_ORIGIN}/php/data.php`} method="get">
+      <label>
+        <span>Instrument</span>
+        <select name="instrument" id="product">
+          {ARCHIVE_PRODUCTS.map((p) => <option value={p.code}>{p.label}</option>)}
+        </select>
+      </label>
+      <label>
+        <span>Local date</span>
+        <input type="date" id="date" min="2009-01-01" required />
+      </label>
+      <input type="hidden" name="Year" />
+      <input type="hidden" name="month" />
+      <input type="hidden" name="day" />
+      <button type="submit">Open day</button>
+    </form>
+    <p class="small muted">
+      The day opens on the observatory’s archive server. There you can step to the previous or next day and download that
+      day’s data file.
+    </p>
+
+    <section class="block" aria-labelledby="raw-h">
+      <h2 id="raw-h">Raw data files</h2>
+      <p>
+        Each instrument writes one text file per local (Mountain) day. Header lines begin with <code>;</code>. Each row starts
+        with the UTC time, followed by tab- or comma-separated values:
+      </p>
+      <p><code>{LEGACY_ORIGIN}/data/&lt;instrument&gt;/&lt;prefix&gt;_YY_MM_DD.dat</code></p>
+      <p>
+        Example: <a href={`${LEGACY_ORIGIN}/data/pyranometer/pyra_25_07_04.dat`}><code>pyranometer/pyra_25_07_04.dat</code></a>.
+        Each instrument’s page lists its own path. An IDL reader, <a href={`${LEGACY_ORIGIN}/read_skywatch.pro`}>read_skywatch.pro</a>,
+        is documented in its <a href={`${LEGACY_ORIGIN}/readme.txt`}>readme</a>.
+      </p>
+    </section>
+
+    {
+      events.length > 0 && (
+        <section class="block" aria-labelledby="events-h">
+          <h2 id="events-h">Special observations</h2>
+          <p class="muted">Radiosonde soundings and case studies from special observing events, newest first.</p>
+          <ul class="events">
+            {[...soundings, ...cases].map((e) => (
+              <li>
+                <a href={e.src}>
+                  {e.kind === 'sounding' ? 'Sounding' : 'Case study'}, {pretty(e.label)}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </div>
+</Base>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('.picker')!;
+  const date = document.getElementById('date') as HTMLInputElement;
+  const product = document.getElementById('product') as HTMLSelectElement;
+
+  // Default to yesterday in Mountain time, and preselect ?product= from instrument pages.
+  const ymd = (d: Date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Denver' }).format(d);
+  date.max = ymd(new Date());
+  date.value = ymd(new Date(Date.now() - 86_400_000));
+  const wanted = new URLSearchParams(location.search).get('product');
+  if (wanted && [...product.options].some((o) => o.value === wanted)) product.value = wanted;
+
+  // The legacy archive expects two-digit Year/month/day fields.
+  form.addEventListener('submit', () => {
+    const [y, m, d] = date.value.split('-');
+    (form.elements.namedItem('Year') as HTMLInputElement).value = y.slice(2);
+    (form.elements.namedItem('month') as HTMLInputElement).value = m;
+    (form.elements.namedItem('day') as HTMLInputElement).value = d;
+  });
+</script>
+
+<style>
+  .picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 1rem;
+    padding: 1.25rem;
+    margin-block: 1.5rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+  }
+  .picker label {
+    display: grid;
+    gap: 0.3rem;
+    flex: 1 1 14rem;
+  }
+  .picker span {
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+  select,
+  input,
+  button {
+    font: inherit;
+    min-height: 2.75rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--ink);
+  }
+  button {
+    background: var(--zenith);
+    color: var(--bg);
+    border-color: var(--zenith);
+    font-weight: 600;
+    padding-inline: 1.25rem;
+    cursor: pointer;
+  }
+  .block {
+    margin-top: 2.5rem;
+  }
+  code {
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+  }
+  .events {
+    columns: 16rem;
+    column-gap: 2rem;
+    padding-left: 1.1rem;
+  }
+  .events li {
+    break-inside: avoid;
+    margin-bottom: 0.3rem;
+  }
+</style>

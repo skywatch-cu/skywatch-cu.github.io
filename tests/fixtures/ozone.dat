@@ -1,0 +1,12 @@
+;Ozone Detector
+;Date 2026/10/30 (local day yyyy/mm/dd)
+;Start Time  12:00:03 AM (local mountain time hh:mm:ss)
+;Sensitivity value is 50 ppb/V with electrical offset of -0.000465289 V
+;Time (UTC)	Ozone (cm)	Voltage (V)
+
+06:00:03	7.626511	0.152530
+06:00:13	8.003957	0.160079
+06:00:23	8.094216	0.161884
+23:59:57	29.452820	0.589056
+00:00:07	32.094959	0.641899
+00:46:58	23.791098	0.475822

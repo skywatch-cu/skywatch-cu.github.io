@@ -1,0 +1,164 @@
+---
+/** Current readings, as reported by the legacy homepage at build time. */
+import { getSnapshot } from '../lib/snapshot.ts';
+
+const snap = getSnapshot();
+const s = snap.status;
+
+const fmt = (v: number | null | undefined, digits = 0) => (v == null ? '–' : v.toFixed(digits));
+const groups: { title: string; href: string; rows: { label: string; value: string; unit: string }[] }[] = s
+  ? [
+      {
+        title: 'Sunlight',
+        href: '/instruments/spn1/',
+        rows: [
+          { label: 'Global shortwave', value: fmt(s.swDown), unit: 'W m⁻²' },
+          { label: 'Diffuse shortwave', value: fmt(s.swDiffuse), unit: 'W m⁻²' },
+        ],
+      },
+      {
+        title: 'Atmospheric emission',
+        href: '/instruments/pyrgeometer/',
+        rows: [{ label: 'Downwelling longwave', value: fmt(s.lwDown), unit: 'W m⁻²' }],
+      },
+      {
+        title: 'Precipitation',
+        href: '/instruments/precipitation-gauge/',
+        rows: [
+          { label: 'Since local midnight', value: fmt(s.dailyPrecip, 1), unit: 'mm' },
+          { label: 'Rain rate', value: fmt(s.rainRate, 1), unit: 'mm h⁻¹' },
+          { label: 'Snow depth', value: fmt(s.snowDepth), unit: 'mm' },
+        ],
+      },
+      {
+        title: 'Surface ozone',
+        href: '/instruments/ozone/',
+        rows: [{ label: 'Mixing ratio', value: fmt(s.ozone), unit: 'ppb' }],
+      },
+    ]
+  : [];
+const cloud = s?.cloud?.replace(/\s+/g, ' ').replace(/^Cloud Base:/, 'Lowest cloud base').trim();
+---
+
+<section class="readings" aria-labelledby="now-h">
+  <h2 id="now-h" class="visually-hidden">Current readings</h2>
+  {
+    s ? (
+      <>
+        <p class="asof" data-observed={s.observedAt ?? ''} data-fresh={String(snap.statusFresh)}>
+          Readings as of <time datetime={s.observedAt ?? ''}>{s.observedAt?.slice(11, 16) ?? '–'} UTC</time>
+          <span class="age" />
+        </p>
+        <p class="cloud">
+          <a href="/instruments/ceilometer/">{cloud ?? 'Cloud base unavailable'}</a>
+        </p>
+        <div class="groups">
+          {groups.map((g) => (
+            <div class="group">
+              <h3>
+                <a href={g.href}>{g.title}</a>
+              </h3>
+              <dl>
+                {g.rows.map((r) => (
+                  <div class="row">
+                    <dt>{r.label}</dt>
+                    <dd>
+                      <span class="v">{r.value}</span> <span class="u">{r.unit}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ))}
+        </div>
+      </>
+    ) : (
+      <p class="muted">
+        Current readings are unavailable because the observatory server didn’t respond at the last update.
+        The <a href="https://skywatch.colorado.edu/">legacy site</a> may still have them.
+      </p>
+    )
+  }
+</section>
+
+<script>
+  // Show the reading's age in the viewer's clock and flag anything older than an hour.
+  const el = document.querySelector<HTMLElement>('.asof');
+  if (el?.dataset.observed) {
+    const t = new Date(el.dataset.observed);
+    const local = t.toLocaleTimeString('en-US', { timeZone: 'America/Denver', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+    el.querySelector('time')!.textContent = local;
+    const mins = Math.round((Date.now() - t.getTime()) / 60_000);
+    const age = el.querySelector<HTMLElement>('.age')!;
+    age.textContent = mins < 2 ? ', just now' : mins < 120 ? `, ${mins} min ago` : `, ${Math.round(mins / 60)} h ago`;
+    if (mins > 60 || el.dataset.fresh === 'false') {
+      el.classList.add('stale');
+      age.textContent += '. These readings are out of date.';
+    }
+  }
+</script>
+
+<style>
+  .asof {
+    color: var(--ink-soft);
+    margin-bottom: 0.25rem;
+  }
+  .cloud {
+    font-size: var(--step-2);
+    font-weight: 550;
+    letter-spacing: -0.01em;
+    margin-bottom: 1.25rem;
+  }
+  .cloud a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .cloud a:hover {
+    text-decoration: underline;
+  }
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1.25rem 2rem;
+  }
+  .group h3 {
+    font-size: var(--step-0);
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 2px solid var(--zenith);
+  }
+  .group h3 a {
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .group h3 a:hover {
+    text-decoration: underline;
+  }
+  dl {
+    margin: 0;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding-block: 0.3rem;
+  }
+  dt {
+    color: var(--ink-soft);
+  }
+  dd {
+    margin: 0;
+    white-space: nowrap;
+  }
+  .v {
+    font-size: var(--step-2);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .u {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+  }
+</style>

@@ -1,0 +1,12 @@
+;Pyranometer
+;Date 2026/10/30 (local day yyyy/mm/dd)
+;Start Time  12:00:03 AM (local mountain time hh:mm:ss)
+;Sensitivity value is 79365 W/m^2/V with electrical offset of -0.000466515 V
+;Time (UTC)	Irradiance (W/m^2)	Voltage (V)
+
+06:00:03	18.053003	0.000227
+06:00:13	-8.037028	-0.000101
+06:00:23	-2.819022	-3.551971E-5
+23:59:57	7.616991	9.597418E-5
+00:00:07	12.834997	0.000162
+00:46:58	5.007988	6.310071E-5

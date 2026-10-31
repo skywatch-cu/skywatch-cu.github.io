@@ -1,0 +1,131 @@
+---
+import Base from '../layouts/Base.astro';
+import { STATION } from '../data/instruments.ts';
+---
+
+<Base title="About" description="About the CU Boulder ATOC Skywatch Observatory: research, teaching, partnerships and publications.">
+  <div class="wrap section prose">
+    <h1>About Skywatch</h1>
+    <p class="lede">
+      Skywatch is a surface observatory on the University of Colorado’s East Campus in Boulder. Its instruments
+      measure the state of the atmosphere for research and teaching.
+    </p>
+    <p>
+      The observatory is run by the Atmospheric Radiation Group and the Cloud and Precipitation Research Group,
+      part of the <a href="https://www.colorado.edu/atoc/">Department of Atmospheric and Oceanic Sciences</a> and
+      the <a href="https://lasp.colorado.edu/">Laboratory for Atmospheric and Space Physics</a>.
+    </p>
+    <p>
+      Station: {STATION.lat.toFixed(2)}° N, {Math.abs(STATION.lon).toFixed(2)}° W, {STATION.elevationM} m above sea level.
+      Contact: <a href={`mailto:${STATION.email}`}>{STATION.email}</a>.
+    </p>
+
+    <h2 id="teaching">Teaching</h2>
+    <p>Undergraduate labs (90 minutes each) built around the observatory include:</p>
+    <ul>
+      <li>a precipitation lab using the disdrometer, the rain gauge and weather radar;</li>
+      <li>a radiation lab using the ceilometer, the pyranometer and the pyrgeometer.</li>
+    </ul>
+    <p>
+      Student projects have included cloud-height comparisons, pyranometer comparisons, cross-calibration of the
+      pyrgeometer against a CG4, ozone measurement comparisons, SSFR optical head comparisons, and the ATOC 4710
+      downward surface irradiance class project (2015).
+    </p>
+
+    <h2 id="publications">Publications and presentations</h2>
+    <h3>Research using Skywatch data</h3>
+    <ul class="refs">
+      <li>
+        LeMone, M. A., T. W. Schlatter, and R. T. Henson, 2013: A striking cloud over Boulder, Colorado: What is its
+        altitude, and does it matter? <em>Bull. Amer. Meteor. Soc.</em>, <strong>94</strong>, 634–643.
+      </li>
+    </ul>
+    <h3>Teaching implementation</h3>
+    <ul class="refs">
+      <li>
+        Trenbath, K., A. S. Kittelman, P. Pilewskie, and K. Friedrich, 2010: Transforming an atmospheric science
+        undergraduate lab: Integrating Skywatch Observatory into ATOC 1070. ATOC Student Poster Conference, Boulder, CO.
+      </li>
+      <li>Trenbath, K., et al., 2011: Course curriculum and laboratory improvement (poster and paper).</li>
+    </ul>
+    <h3>Presentations</h3>
+    <ul class="refs">
+      <li>
+        Kittelman, S. A., and S. E. LeBlanc, 2010: Keeping an eye to the sky: An introduction to the ATOC Skywatch
+        Laboratory. ATOC Seminar Series, Boulder, CO.
+      </li>
+      <li>
+        LeBlanc, S. E., P. Pilewskie, S. Kittelman, and K. Friedrich, 2009: Summary of the Skywatch suite of
+        instruments. ATOC Student Poster Conference, Boulder, CO.
+      </li>
+    </ul>
+
+    <h2 id="partnerships">Partnerships</h2>
+    <dl class="partners">
+      <dt>National Atmospheric Deposition Program</dt>
+      <dd>
+        From January 2017 to the end of 2020, Skywatch was a site in the NADP National Trends Network. Boulder Creek
+        Critical Zone Observatory technicians collected weekly precipitation samples, which the NTN laboratory analyzed
+        for major ions, pH and specific conductance.
+      </dd>
+      <dt>U.S. Geological Survey</dt>
+      <dd>
+        USGS scientists measured wet and dry deposition of atmospheric nitrogen species here for the Network for Urban
+        Atmospheric Nitrogen Chemistry. That study brought together the USGS, CU Boulder, Colorado State University and
+        Texas A&amp;M.
+      </dd>
+      <dt>LAIR group, CU Aerospace Engineering Sciences</dt>
+      <dd>
+        Skywatch hosts an all-sky meteor camera in a network across Colorado, Utah and Wyoming. The network tests
+        whether meteors emit very-low-frequency radio waves, using a VLF receiver on Table Mountain.
+      </dd>
+      <dt>Colorado State University</dt>
+      <dd>As part of the USGS study, a passive ammonia monitor from the Collett group’s air-quality program.</dd>
+      <dt>Boulder Creek Critical Zone Observatory</dt>
+      <dd>Field support for the NADP/NTN precipitation sampling and ammonia monitoring.</dd>
+      <dt>International Atomic Energy Agency</dt>
+      <dd>
+        ATOC students have occasionally collected precipitation here for stable water isotope analysis by the IAEA
+        Global Network of Isotopes in Precipitation.
+      </dd>
+    </dl>
+
+    <h2 id="news">Instrument log</h2>
+    <dl class="partners">
+      <dt><time datetime="2017-07-18">18 July 2017</time></dt>
+      <dd>The SPN1 total and diffuse pyranometer joined the instrument suite.</dd>
+      <dt><time datetime="2014-04-10">10 April 2014</time></dt>
+      <dd>The ozone monitor returned to service after a lamp replacement.</dd>
+    </dl>
+  </div>
+</Base>
+
+<style>
+  .prose h2 {
+    margin-top: 2.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid var(--zenith);
+  }
+  .prose h3 {
+    font-size: var(--step-0);
+    margin-top: 1.5rem;
+  }
+  .prose ul,
+  .prose dl {
+    max-width: var(--measure);
+  }
+  .refs {
+    padding-left: 1.1rem;
+  }
+  .refs li {
+    margin-bottom: 0.6rem;
+  }
+  .partners dt {
+    font-weight: 600;
+    margin-top: 1rem;
+  }
+  .partners dd {
+    margin: 0.2rem 0 0;
+    color: var(--ink-soft);
+  }
+</style>

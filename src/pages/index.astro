@@ -1,0 +1,103 @@
+---
+import Base from '../layouts/Base.astro';
+import SkyDisc from '../components/SkyDisc.astro';
+import Readings from '../components/Readings.astro';
+import TimeSeries from '../components/TimeSeries.astro';
+---
+
+<Base>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <SkyDisc />
+      <div>
+        <h1>The sky over East Campus</h1>
+        <p class="lede">
+          Radiometers, a lidar ceilometer, precipitation sensors and an ozone monitor at the
+          CU Boulder ATOC Skywatch Observatory, logging day and night since 2009.
+        </p>
+        <Readings />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>Last 24 hours</h2>
+      <p class="muted">Drag across a chart to zoom in, and double-click to reset.</p>
+      <div class="charts">
+        <TimeSeries
+          sources={[
+            { id: 'pyranometer', keys: ['sw_down'] },
+            { id: 'spn1', keys: ['sw_diffuse'] },
+            { id: 'pyrgeometer', keys: ['lw_down'] },
+          ]}
+          yLabel="Irradiance"
+          caption="Downwelling shortwave (CMP 3 global, SPN1 diffuse) and longwave (CGR 3) irradiance."
+        />
+        <TimeSeries
+          sources={[{ id: 'net-radiometer', keys: ['net'] }]}
+          yLabel="Net irradiance"
+          height={220}
+          caption="Surface net radiation: positive values mean the surface gains energy."
+        />
+        <div class="pair">
+          <TimeSeries
+            sources={[{ id: 'ceilometer' }]}
+            yLabel="Height above ground"
+            height={220}
+            zeroFloor
+            points
+            caption="Cloud-base heights from the CL31 ceilometer. Gaps are clear sky."
+          />
+          <TimeSeries
+            sources={[{ id: 'ozone' }]}
+            yLabel="Ozone"
+            height={220}
+            caption="Surface ozone mixing ratio."
+          />
+        </div>
+      </div>
+      <p><a href="/instruments/">See every instrument, with today’s full plots</a></p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(1.5rem, 4vw, 3rem);
+  }
+  .hero-grid {
+    display: grid;
+    /* minmax(0, …) stops the sky image's intrinsic width from widening the column on phones */
+    grid-template-columns: minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3.5rem);
+    align-items: center;
+  }
+  @media (min-width: 60rem) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+  }
+  h1 {
+    margin-bottom: 0.4em;
+  }
+  .lede {
+    margin-bottom: 1.5rem;
+  }
+  .charts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+    margin-block: 1.25rem 1.5rem;
+  }
+  .pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+  @media (min-width: 60rem) {
+    .pair {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

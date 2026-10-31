@@ -1,0 +1,72 @@
+---
+/**
+ * The live all-sky camera image as a hemispheric disc with a 30° azimuth tick ring.
+ * Bearing labels are omitted until the camera's orientation (and any E–W mirroring) is confirmed.
+ * The image has a stable URL on the legacy server, so it refreshes client-side.
+ */
+import { LEGACY_ORIGIN } from '../lib/legacy.ts';
+
+interface Props {
+  size?: 'hero' | 'full';
+}
+const { size = 'hero' } = Astro.props;
+const src = `${LEGACY_ORIGIN}/data/allsky/allsky_current.jpg`;
+---
+
+<figure class:list={['sky', size]}>
+  <div class="disc">
+    <img class="sky-img" data-live src={src} alt="All-sky camera: hemispheric view of the sky above the observatory, updated every few minutes" width="580" height="580" />
+    <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="49" fill="none" stroke="currentColor" stroke-width="0.6"></circle>
+      {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((a) => (
+        <line x1="50" y1="1" x2="50" y2={a % 90 === 0 ? 5 : 3} stroke="currentColor" stroke-width="0.5" transform={`rotate(${a} 50 50)`} />
+      ))}
+    </svg>
+  </div>
+  <figcaption>All-sky camera, refreshed every 2 minutes.</figcaption>
+</figure>
+
+<script>
+  // Reload stable-URL camera images every 2 min (the legacy page did the same).
+  const imgs = document.querySelectorAll<HTMLImageElement>('img[data-live]');
+  const base = new Map([...imgs].map((i) => [i, i.src]));
+  setInterval(() => {
+    if (document.hidden) return;
+    for (const [img, src] of base) img.src = `${src}?t=${Date.now()}`;
+  }, 120_000);
+</script>
+
+<style>
+  .sky {
+    color: var(--ink-soft);
+  }
+  .disc {
+    position: relative;
+    aspect-ratio: 1;
+    width: 100%;
+    max-width: 30rem;
+    margin-inline: auto;
+    padding: 0.9rem;
+  }
+  .full .disc {
+    max-width: 40rem;
+  }
+  .sky-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    background: radial-gradient(circle, #2a4a72, #0c1a2b);
+  }
+  .ring {
+    position: absolute;
+    inset: 0.2rem;
+    width: calc(100% - 0.4rem);
+    height: calc(100% - 0.4rem);
+    pointer-events: none;
+  }
+  figcaption {
+    text-align: center;
+  }
+</style>

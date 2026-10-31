@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import SkyDisc from '../components/SkyDisc.astro';
+import { LEGACY_ORIGIN } from '../lib/legacy.ts';
+---
+
+<Base title="Sky" description="Live all-sky and Front Range camera images from the CU Boulder Skywatch Observatory.">
+  <div class="wrap section">
+    <h1>Sky</h1>
+    <div class="grid">
+      <section aria-labelledby="allsky-h">
+        <h2 id="allsky-h">All-sky imager</h2>
+        <p class="muted">
+          A 180° fisheye colour camera (Schreder-CMS VIS J1006) shows cloud fraction, cloud type and passing fronts.
+        </p>
+        <SkyDisc size="full" />
+      </section>
+      <section aria-labelledby="cam-h">
+        <h2 id="cam-h">Front Range camera</h2>
+        <p class="muted">A fixed view toward the foothills, refreshed every 2 minutes.</p>
+        <figure>
+          <img class="cam" data-live src={`${LEGACY_ORIGIN}/data/skycam/fixed.jpg`} alt="Current Front Range snapshot from the observatory" />
+        </figure>
+      </section>
+    </div>
+    <p class="small muted">
+      Past all-sky images are in the <a href="/archive/?product=allsky">archive</a>.
+    </p>
+  </div>
+</Base>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+  }
+  @media (min-width: 64rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .cam {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+</style>

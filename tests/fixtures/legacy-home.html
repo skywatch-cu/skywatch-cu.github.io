@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<title>Skywatch Observatory</title>
+<link href="style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body class="twoColElsLtHdr">
+
+<div id="container"> 
+	<!-- use flexbox to position items at the top of the web page in a header -->
+  <header class="flex-header" id="header"> 
+	  <div>
+		<h1><a href="https://skywatch.colorado.edu">Skywatch Observatory</a></h1>
+		  <!-- horizontal menu items along the top of the webpage --> 
+		<nav>
+			<a href="https://sundowner.colorado.edu/weather/atoc8/" target="info">Weather</a>
+			<a href="php/cam.php" target="info">Sky Camera</a>
+			<a href="php/allsky.php" target="info">All Sky Image</a> 
+    		<a href="Collaboration.html" target="info">Partnerships</a>
+		</nav> 
+	  </div>
+	  <!-- create a 3 column x 2 row table of current skywatch measurements --> 
+      <div id="ticker">
+        <table><tr><td>Pyranometer:  49 W/m<sup>2</sup></td><td>Pyrgeometer:  282 W/m<sup>2</sup></td><td>Pyra Diffuse:  47 W/m<sup>2</sup></td></tr><tr><td>Daily Precip:  0 mm</td><td>Rain Intensity: 0.0 mm/hr</td><td>Snow Depth:  0 mm</td></tr><tr><td>Ozone:  40 ppb</td><td>23:02  Oct-30-2026  UTC
+</td><td>No Cloud Base Detected</td></tr></table>      </div>	  
+  </header>
+	<!-- Create menu items along the left side to display the current data plots -->
+  <div id="sidebar1">
+    <h3>Today's measurements</h3>
+    <p name="pyr"><a href="php/pyra.php" target="info">Pyranometer</a></p>
+    <p name="pyrg"><a href="php/pyrg.php" target="info">Pyrgeometer</a></p>
+    <p name="spn1"><a href="php/spn.php" target="info">Total/Diffuse Pyranometer</a></p>	
+    <p name="ceil"><a href="php/ceil.php" target="info">Ceilometer</a></p>
+    <p name="spect"><a href="php/sun.php"  target="info">Sunphotometer</a></p>
+    <p name="pluvio"><a href="php/rain.php" target="info">Rain Gauge</a></p>
+    <p name="disd"><a href="php/disd.php"  target="info">Laser optical Disdrometer</a></p>
+    <p name="radar"><a href="php/mrr.php"  target="info">Micro Rain Radar</a></p>
+    <p name="ozone"><a href="php/ozone.php" target="info">Ozone</a></p>
+	  <!-- add dropdown menus to sidebar navigation to make the list of options more compact vertically. 
+Also need javascript routine to hide or display the expanded lists when clicked on by user. See javascript code below -->
+	<button class="dropdown-btn">Radiometers
+	  <i class="fa fa-caret-down"></i>
+	</button>
+    <div class="dropdown-container">
+	  <a href="php/pyra.php" target="info">Pyranometer</a>
+	  <a href="php/pyrg.php" target="info">Pyrgeometer</a>
+	  <a href="php/spn.php" target="info">Total/Diffuse Pyranometer</a>
+	  </div>		
+	<button class="dropdown-btn">Experimental Plots
+	  <i class="fa fa-caret-down"></i>
+	</button>
+    <div class="dropdown-container">
+	  <a href="data/pyranometer/pyra_7day.html" target="info">Pyra7D</a>
+          <a href="data/snow_depth/snow_7day.html" target="info">Snow Depth</a>
+          <a href="data/ceilometer2/ceil_24hr.html" target="info">Ceilometer</a>
+          <a href="php/netrad.php" target="info">Net Radiometer</a>
+	  </div>
+	<button class="dropdown-btn">Archives
+	  <i class="fa fa-caret-down"></i>
+	</button> 
+	<div class="dropdown-container">
+	  <a href="php/archives.php" target="info">Routine Obs</a>
+      <a href="php/event.php" target="info">Special Event Obs</a>
+	  </div>
+    <!-- <h3><a href="php/archives.php" target="info">Archives</a></h3> -->
+    <h3><a href="instrument.html" target="info">Instrument information</a></h3> 
+    <h3><a href="publications.html" target="info">Teaching / Publications</a></h3>
+    <!-- end #sidebar1 --></div>
+    <script>
+/* Loop through all dropdown buttons to toggle between hiding and showing its dropdown content - This allows the user to have multiple dropdowns without any conflict */
+     var dropdown = document.getElementsByClassName("dropdown-btn");
+     var i;
+
+     for (i = 0; i < dropdown.length; i++) {
+        dropdown[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var dropdownContent = this.nextElementSibling;
+        if (dropdownContent.style.display === "block") {
+        dropdownContent.style.display = "none";
+        } else {
+       dropdownContent.style.display = "block";
+       }
+     });
+     }
+  </script> 
+  <div id="mainContent">
+    <table width="100%" height="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+    <td>
+    <!-- <iframe classid="clsid:25336920-03F9-11CF-8FD0-00AA00686F13" src="intro.html" frameborder="0" scrolling="auto" id="info" name="info" align="middle" width=100% height="550px"> </iframe> -->
+	<iframe src="intro.html" name="info" align="middle" width="100%" height="600px"> </iframe>
+		</td></tr></table>
+</div>
+	<!-- This clearing element should immediately follow the #mainContent div in order to force the #container div to contain all child floats --><br class="clearfloat" />
+   <div id="footer">
+
+    <table style="width:100%;border-spacing:15px;height:100px">
+      <tr>
+        <td><a href="http://www.colorado.edu/" target="_blank"><img src="images/CU_logo.png" alt="University of Colorado main website" style="height:65px"></a></td>
+   
+        <td><p>Department of Atmospheric and Oceanic Sciences (ATOC), (303)492-7167, <a href="mailto:skywatch@colorado.edu">email-us</a></p></td>
+		  
+        <td><a href="http://www.colorado.edu/atoc/" target="_blank"><img src="images\atoc_logo.png" alt="ATOC logo" style="height:65px"></a></td>
+		  
+        <td><img src="images/nsf1.png" alt="National Science Foundation logo" style="height:65px"></td>
+      </tr>  
+	 </table>
+  <!-- end #footer --></div>
+<!-- end #container --></div>
+</body>
+</html>

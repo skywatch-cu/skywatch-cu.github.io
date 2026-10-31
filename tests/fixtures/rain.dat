@@ -1,0 +1,13 @@
+;ETI NOAH IV Total Precipitation Gauge Data
+;Date 2026/10/30 (local day yyyy/mm/dd)
+;Start Time is 00:00:20 (local mountain time hh:mm:ss)
+;24 hour accumulation
+;Time(UTC)	Accumulated Precipitation (inches)
+
+06:00:20	0.00
+06:01:20	0.00
+06:02:20	0.00
+23:59:20	0.00
+00:00:20	0.00
+00:01:20	0.00
+00:46:20	0.00

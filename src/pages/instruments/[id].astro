@@ -1,0 +1,135 @@
+---
+import Base from '../../layouts/Base.astro';
+import TimeSeries from '../../components/TimeSeries.astro';
+import { CATEGORY_LABEL, INSTRUMENTS, type Instrument } from '../../data/instruments.ts';
+import { LEGACY_ORIGIN } from '../../lib/legacy.ts';
+import { getSnapshot } from '../../lib/snapshot.ts';
+
+export function getStaticPaths() {
+  return INSTRUMENTS.map((inst) => ({ params: { id: inst.id }, props: { inst } }));
+}
+
+const { inst } = Astro.props as { inst: Instrument };
+const snap = getSnapshot();
+const images = inst.legacyPage ? (snap.images[inst.legacyPage] ?? []) : [];
+const series = inst.series;
+// Plot only the radiometric/physical fields; housekeeping (sensor temperature) stays in the file.
+const mainKeys = series
+  ? [...series.fields.filter((f) => f.unit !== 'K').map((f) => f.key), ...(series.derived ?? []).map((d) => d.key)]
+  : [];
+const yLabel = series?.fields[0].unit === 'm' ? 'Height above ground' : series?.fields[0].unit === 'ppb' ? 'Ozone' : series?.fields[0].unit === 'mm' ? 'Precipitation' : 'Irradiance';
+const rawPattern = series ? `${LEGACY_ORIGIN}/data/${series.dir}/${series.prefix}_YY_MM_DD.dat` : null;
+---
+
+<Base title={inst.name} description={`${inst.name} (${inst.model}) at the CU Boulder Skywatch Observatory: ${inst.measures}`}>
+  <article class="wrap section">
+    <p class="crumb"><a href="/instruments/">Instruments</a> / {CATEGORY_LABEL[inst.category]}</p>
+    <h1>{inst.name}</h1>
+    <p class="model">{inst.model}</p>
+    <p class="lede">{inst.measures}</p>
+    {inst.note && <p class="muted small">{inst.note}</p>}
+
+    {
+      series && (
+        <section class="block">
+          <h2>Last 24 hours</h2>
+          <TimeSeries
+            sources={[{ id: inst.id, keys: mainKeys }]}
+            yLabel={yLabel}
+            zeroFloor={inst.id === 'ceilometer' || inst.id === 'precipitation-gauge'}
+            points={inst.id === 'ceilometer'}
+            caption={series.intervalSec < 60 ? `Logged every ${series.intervalSec} s, averaged here to 1 minute.` : 'Logged every minute.'}
+          />
+        </section>
+      )
+    }
+
+    <section class="block">
+      <h2>{series ? 'Today’s plots from the observatory server' : 'Today'}</h2>
+      {
+        images.length ? (
+          <div class="plots">
+            {images.map((im) => (
+              <figure>
+                <a href={im.src}>
+                  <img class="plot-img" src={im.src} alt={im.alt} loading="lazy" decoding="async" />
+                </a>
+                <figcaption>{im.alt}</figcaption>
+              </figure>
+            ))}
+          </div>
+        ) : (
+          <p class="muted">
+            Today’s plots couldn’t be retrieved at the last update. They’re also on the{' '}
+            <a href={`${LEGACY_ORIGIN}/php/${inst.legacyPage}.php`}>legacy page</a>.
+          </p>
+        )
+      }
+    </section>
+
+    <section class="block">
+      <h2>Data</h2>
+      <ul class="links">
+        {
+          inst.archive.map((a) => (
+            <li>
+              <a href={`/archive/?product=${a.code}`}>Browse past days: {a.label}</a>
+            </li>
+          ))
+        }
+        {
+          rawPattern && (
+            <li>
+              Daily raw files, one per local day: <code>{rawPattern}</code>
+            </li>
+          )
+        }
+        {
+          inst.specUrl && (
+            <li>
+              <a href={inst.specUrl}>Manufacturer specifications</a>
+            </li>
+          )
+        }
+      </ul>
+    </section>
+  </article>
+</Base>
+
+<style>
+  .crumb {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    margin-bottom: 0.75rem;
+  }
+  h1 {
+    margin-bottom: 0.15em;
+  }
+  .model {
+    color: var(--ink-soft);
+    font-size: var(--step-1);
+    margin-bottom: 1rem;
+  }
+  .block {
+    margin-top: 2.5rem;
+  }
+  .plots {
+    display: grid;
+    gap: 1.5rem;
+  }
+  @media (min-width: 64rem) {
+    .plots:has(figure:nth-child(2)) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .links {
+    padding-left: 1.1rem;
+  }
+  .links li {
+    margin-bottom: 0.4rem;
+  }
+  code {
+    font-size: 0.9em;
+    overflow-wrap: anywhere;
+  }
+</style>

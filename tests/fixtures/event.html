@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="/style.css" rel="stylesheet" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Special Event Observations</title>
+</head>
+<body class="plain">
+<div id="container">
+	<div id="mainContent">
+	<h1> Skywatch Special Event Data Retrieval Tool </h1>
+    <h3> Please select the Source Data of interest > the File > then press Submit </h3>
+<!-- Create a HTML form. When the submit button is pressed, the selected data source and file name will be sent to 
+event_data.php for processing -->
+    <form name="form1" method="post" action="/php/event_data.php">
+        <table width="100%" border="0" cellspacing="2" cellpadding="5">
+          <tr> 
+<!-- Determine today's date to use as default input to the data retrieval form -->
+<!-- Initially display the Atmospheric Soundings list of files. If the user selects another data source, it will be detected
+with the HTML Event onChange which calls the javascript function changeSource which loads source png files into the Select
+File drop down list. Might also consider radio buttons instead of a drop down list for the Source Data selection -->
+
+            <td>
+				<label for="source">Select Source Data</label><br>
+              <select name="source" size="2" id="src_1" onChange="changeSource()" required>
+                  <option value="sound" selected> Atmospheric Soundings </option>
+                  <option value="case"> Special Cases </option>
+              </select>
+            </td>
+            <td>
+				<label for="fname">Select File</label><br>
+                <select name="fname" size="5" id="date_select" required>
+<!-- php code generates HTML options list for the drow down box -->
+				<option value=../data/sounding/sound_2018_10_26.png> sound_2018_10_26 </option><br><option value=../data/sounding/sound_2019_01_08.png> sound_2019_01_08 </option><br><option value=../data/sounding/sound_2019_04_26.png> sound_2019_04_26 </option><br><option value=../data/sounding/sound_2020_02_05.png> sound_2020_02_05 </option><br><option value=../data/sounding/sound_2020_02_17.png> sound_2020_02_17 </option><br><option value=../data/sounding/sound_2020_10_20.png> sound_2020_10_20 </option><br><option value=../data/sounding/sound_2020_10_24.png> sound_2020_10_24 </option><br><option value=../data/sounding/sound_2020_10_25.png> sound_2020_10_25 </option><br><option value=../data/sounding/sound_2021_02_15.png> sound_2021_02_15 </option><br><option value=../data/sounding/sound_2021_09_28.png> sound_2021_09_28 </option><br><option value=../data/sounding/sound_2021_10_12.png> sound_2021_10_12 </option><br><option value=../data/sounding/sound_2021_11_19_1638.png> sound_2021_11_19_1638 </option><br><option value=../data/sounding/sound_2021_11_19_1823.png> sound_2021_11_19_1823 </option><br><option value=../data/sounding/sound_2021_11_19_2004.png> sound_2021_11_19_2004 </option><br><option value=../data/sounding/sound_2021_11_19_2201.png> sound_2021_11_19_2201 </option><br><option value=../data/sounding/sound_2022_09_06.png> sound_2022_09_06 </option><br><option value=../data/sounding/sound_2022_10_04.png> sound_2022_10_04 </option><br><option value=../data/sounding/sound_2023_02_16.png> sound_2023_02_16 </option><br><option value=../data/sounding/sound_2023_10_04.png> sound_2023_10_04 </option><br><option value=../data/sounding/sound_2024_04_10.png> sound_2024_04_10 </option><br><option value=../data/sounding/sound_2024_09_26.png> sound_2024_09_26 </option><br><option value=../data/sounding/sound_2024_11_21.png> sound_2024_11_21 </option><br><option value=../data/sounding/sound_2025_04_07.png> sound_2025_04_07 </option><br><option value=../data/sounding/sound_2025_04_09.png> sound_2025_04_09 </option><br><option value=../data/sounding/sound_2025_05_01.png> sound_2025_05_01 </option><br><option value=../data/sounding/sound_2025_09_16.png> sound_2025_09_16 </option><br><option value=../data/sounding/sound_2025_11_20.png> sound_2025_11_20 </option><br><option value=../data/sounding/sound_2026_03_30.png> sound_2026_03_30 </option><br><option value=../data/sounding/sound_2026_09_02.png> sound_2026_09_02 </option><br>  
+                </select>
+          </td></tr>
+              </table>
+          <br>
+	      <input type="submit" name="Access" id="Access" value="Submit">	
+		</form>
+		<h2> Skywatch Coordinates: </h2>
+		<ul> 
+			<li>Latitude:  40.01 N</li>
+        	<li>Longitude: 105.24 W</li>
+	    	<li>Elevation: 1603 m</li> 
+		</ul>
+	</div>
+</div>
+<script>
+function changeSource() {
+/* first determine the <option> value of Source Data drop down list. Based on the user selected
+source data,  search atoc02 for all source files. For example, all Atmospheric Soundings are 
+located in the directory ../data/Sounding
+*/
+	
+  var x = document.getElementById("src_1").value;
+  switch (x){
+     // fns contains the full file name. bns contians just the name for display in the drow down list
+	  case "sound":
+	  	  var bns = ["sound_2018_10_26","sound_2019_01_08","sound_2019_04_26","sound_2020_02_05","sound_2020_02_17","sound_2020_10_20","sound_2020_10_24","sound_2020_10_25","sound_2021_02_15","sound_2021_09_28","sound_2021_10_12","sound_2021_11_19_1638","sound_2021_11_19_1823","sound_2021_11_19_2004","sound_2021_11_19_2201","sound_2022_09_06","sound_2022_10_04","sound_2023_02_16","sound_2023_10_04","sound_2024_04_10","sound_2024_09_26","sound_2024_11_21","sound_2025_04_07","sound_2025_04_09","sound_2025_05_01","sound_2025_09_16","sound_2025_11_20","sound_2026_03_30","sound_2026_09_02"];
+		  var fns = ["..\/data\/sounding\/sound_2018_10_26.png","..\/data\/sounding\/sound_2019_01_08.png","..\/data\/sounding\/sound_2019_04_26.png","..\/data\/sounding\/sound_2020_02_05.png","..\/data\/sounding\/sound_2020_02_17.png","..\/data\/sounding\/sound_2020_10_20.png","..\/data\/sounding\/sound_2020_10_24.png","..\/data\/sounding\/sound_2020_10_25.png","..\/data\/sounding\/sound_2021_02_15.png","..\/data\/sounding\/sound_2021_09_28.png","..\/data\/sounding\/sound_2021_10_12.png","..\/data\/sounding\/sound_2021_11_19_1638.png","..\/data\/sounding\/sound_2021_11_19_1823.png","..\/data\/sounding\/sound_2021_11_19_2004.png","..\/data\/sounding\/sound_2021_11_19_2201.png","..\/data\/sounding\/sound_2022_09_06.png","..\/data\/sounding\/sound_2022_10_04.png","..\/data\/sounding\/sound_2023_02_16.png","..\/data\/sounding\/sound_2023_10_04.png","..\/data\/sounding\/sound_2024_04_10.png","..\/data\/sounding\/sound_2024_09_26.png","..\/data\/sounding\/sound_2024_11_21.png","..\/data\/sounding\/sound_2025_04_07.png","..\/data\/sounding\/sound_2025_04_09.png","..\/data\/sounding\/sound_2025_05_01.png","..\/data\/sounding\/sound_2025_09_16.png","..\/data\/sounding\/sound_2025_11_20.png","..\/data\/sounding\/sound_2026_03_30.png","..\/data\/sounding\/sound_2026_09_02.png"];
+		  break;
+	  case "case":
+		  var bns = ["case_20_06_12","case_20_06_13","case_20_06_14","case_20_06_15"];
+		  var fns = ["..\/data\/sp_cases\/case_20_06_12.png","..\/data\/sp_cases\/case_20_06_13.png","..\/data\/sp_cases\/case_20_06_14.png","..\/data\/sp_cases\/case_20_06_15.png"];
+		  break;
+	  default:
+		  $error = "did not find a data source";
+  }
+	// assign the php variables to javascript variables
+	var str = "";
+	// generate the options for the drop down selection list with id = date_select
+	ii = 0;
+  	for (var item of bns) {
+    	str += "<option value = "+ fns[ii] + ">" + item+ "</option>";
+		ii = ii + 1;
+  	}
+  // change the existing <options> list to reflect the Source Data selection
+  document.getElementById("date_select").innerHTML = str;
+  //window.alert(fns); 
+}	
+</script>
+</body>
+</html>
