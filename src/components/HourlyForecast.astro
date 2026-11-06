@@ -1,0 +1,119 @@
+---
+/**
+ * Next 48 h of the NWS hourly forecast: temperature and dew point (left axis) with the
+ * probability of precipitation as bars (right axis). Drawn entirely in the browser.
+ */
+interface Props {
+  hours?: number;
+  height?: number;
+}
+const { hours = 48, height = 260 } = Astro.props;
+---
+
+<figure class="hf" data-hours={hours} data-height={height}>
+  <div class="hf-plot" style={`min-height:${height + 40}px`}>
+    <p class="muted small">Loading the hourly forecast…</p>
+  </div>
+  <figcaption>
+    NWS hourly forecast for the observatory’s 2.5 km grid cell. Bars show the chance of precipitation. Times are Mountain time.
+  </figcaption>
+</figure>
+
+<script>
+  import uPlot from 'uplot';
+  import 'uplot/dist/uPlot.min.css';
+  import { onForecast } from '../lib/forecast-client.ts';
+  import { tempUnit, tempValue, type UnitSystem } from '../lib/units.ts';
+  import type { ForecastBundle } from '../lib/providers/nws.ts';
+
+  const fig = document.querySelector<HTMLElement>('figure.hf');
+  if (fig) {
+    const host = fig.querySelector<HTMLElement>('.hf-plot')!;
+    const hours = Number(fig.dataset.hours);
+    const height = Number(fig.dataset.height);
+    const css = (n: string) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    /** "#rrggbb" token → rgba(); canvas fillStyle support for color-mix() is uneven. */
+    const alpha = (hex: string, a: number) => {
+      const n = parseInt(hex.replace('#', ''), 16);
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+    };
+    const fmtTime = (ts: number) =>
+      new Date(ts * 1000).toLocaleString('en-US', { timeZone: 'America/Denver', weekday: 'short', hour: 'numeric' });
+    let plot: uPlot | null = null;
+    let state: { b: ForecastBundle; u: UnitSystem } | null = null;
+
+    const draw = () => {
+      if (!state?.b.hourly) return;
+      const { b, u } = state;
+      const now = Date.now();
+      const ps = b.hourly!.periods.filter((p) => new Date(p.end).getTime() > now).slice(0, hours);
+      if (!ps.length) return;
+      const t = ps.map((p) => new Date(p.start).getTime() / 1000);
+      const T = ps.map((p) => (p.tempC == null ? null : tempValue(p.tempC, u)));
+      const Td = ps.map((p) => (p.dewpointC == null ? null : tempValue(p.dewpointC, u)));
+      const pop = ps.map((p) => p.pop ?? 0);
+      const ink = css('--ink-soft');
+      const grid = css('--rule');
+      const unit = tempUnit(u);
+      const bars = uPlot.paths.bars!({ size: [0.7, 40] });
+      const opts: uPlot.Options = {
+        width: host.clientWidth,
+        height,
+        tzDate: (ts) => uPlot.tzDate(new Date(ts * 1e3), 'America/Denver'),
+        cursor: { drag: { x: true, y: false }, points: { size: 7 } },
+        scales: { x: { time: true }, pop: { range: [0, 100] } },
+        axes: [
+          { stroke: ink, grid: { stroke: grid, width: 1 }, ticks: { stroke: grid } },
+          { stroke: ink, grid: { stroke: grid, width: 1 }, ticks: { stroke: grid }, label: `Temperature (${unit})`, labelSize: 24, size: 52 },
+          { scale: 'pop', side: 1, stroke: ink, grid: { show: false }, ticks: { stroke: grid }, label: 'Chance of precipitation (%)', labelSize: 24, size: 48 },
+        ],
+        series: [
+          { label: 'Time', value: (_u, v) => (v == null ? '–' : fmtTime(v)) },
+          {
+            label: 'Precipitation chance',
+            scale: 'pop',
+            paths: bars,
+            points: { show: false },
+            stroke: 'transparent',
+            fill: alpha(css('--c-precip'), 0.35),
+            value: (_u, v) => (v == null ? '–' : `${v}%`),
+          },
+          { label: 'Temperature', stroke: css('--c-lw'), width: 2, value: (_u, v) => (v == null ? '–' : `${Math.round(v)}${unit}`) },
+          { label: 'Dew point', stroke: css('--c-o3'), width: 1.75, dash: [5, 4], value: (_u, v) => (v == null ? '–' : `${Math.round(v)}${unit}`) },
+        ],
+      };
+      plot?.destroy();
+      host.replaceChildren();
+      plot = new uPlot(opts, [t, pop, T, Td], host);
+    };
+
+    onForecast((b, u) => {
+      state = { b, u };
+      draw();
+    });
+    new ResizeObserver(() => plot?.setSize({ width: host.clientWidth, height })).observe(host);
+    window.addEventListener('themechange', draw);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  }
+</script>
+
+<style>
+  .hf {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 1rem 1rem 0.75rem;
+  }
+  .hf-plot {
+    width: 100%;
+    min-width: 0;
+  }
+  .hf :global(.u-legend) {
+    font-size: var(--step--1);
+    color: var(--ink);
+    text-align: left;
+  }
+  .hf :global(.u-select) {
+    background: color-mix(in srgb, var(--gold) 25%, transparent);
+  }
+</style>

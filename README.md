@@ -13,12 +13,16 @@ skywatch.colorado.edu (legacy Apache server, unchanged)
    ├─ /php/<instrument>.php     today's PNG plots  ├─ scripts/fetch-data.ts (every 15 min in CI)
    ├─ /php/event.php            soundings list     │     ├─ .cache/snapshot.json
    └─ /data/<dir>/*_YY_MM_DD.dat raw logger files ─┘     └─ public/data/series/<id>.json (24 h, 1-min)
+api.weather.gov (NWS) ── forecast, hourly, alerts, discussion ──→ public/data/forecast.json
                                                                   │
                                                           astro build → GitHub Pages
+                                                                  │
+                                         browser re-fetches api.weather.gov every 15 min
 ```
 
 - The legacy server sends no CORS headers, so the browser can't fetch its data. Instead, each GitHub Actions build fetches and parses it, every 15 minutes.
 - Charts are drawn in the browser from the per-instrument JSON. Images with stable URLs (the all-sky and Front Range cameras) are hotlinked and refresh every 2 minutes on the client.
+- Forecasts come from the [NWS API](https://www.weather.gov/documentation/services-web-api), which does allow CORS. The build saves a copy for first paint, and each page then fetches the NWS directly and refreshes every 15 minutes. Forecasts therefore stay current even when a site rebuild is late.
 - If the legacy server is down, the previous snapshot is restored from the Actions cache. The site then shows stale data with a warning rather than failing.
 - [`docs/data-contract.md`](docs/data-contract.md) is the proposal for a direct data feed (Phase 2), to give to the server administrator.
 
@@ -44,12 +48,17 @@ npm run build        # static site in dist/
 | The page shell, nav, footer | `src/layouts/Base.astro` |
 | Colours, type scale, dark mode | `src/styles/global.css` |
 | About, teaching, partnerships, publications | `src/pages/about.astro` |
+| NWS requests, parsing, contact User-Agent | `src/lib/providers/nws.ts` (and `tests/nws.test.ts`) |
+| Forecast markup (shared by build and browser) | `src/lib/render/forecast.ts` |
+| Forecast page | `src/pages/forecast.astro`, `src/components/Forecast*.astro`, `HourlyForecast.astro`, `AlertBanner.astro` |
 
 To add a logged instrument, add a `series` block to its entry in `src/data/instruments.ts`. Give it the `/data/` directory, the file prefix and the column indices. Its chart and JSON are then generated automatically.
 
+To add another external data source (Open-Meteo, radar, soundings), add a module next to `src/lib/providers/nws.ts`. It should have pure normalizers into SI types, tests against saved responses, and fetch functions that work in both Node and the browser. Then add a renderer and a component that subscribes to live updates, as in `src/lib/forecast-client.ts`.
+
 ## Deployment
 
-`.github/workflows/deploy.yml` runs on every push to `main`, every 15 minutes, and on manual dispatch. Each run tests, fetches data, builds and deploys to Pages.
+`.github/workflows/deploy.yml` runs on every push to `main`, on a 15-minute schedule, and on `workflow_dispatch`. Each run tests, fetches data, builds and deploys to Pages. GitHub runs the schedule only every few hours, so an external timer triggers the workflow every 10 minutes; see [`docs/scheduled-refresh.md`](docs/scheduled-refresh.md).
 
 > **Note:** GitHub disables scheduled workflows in a public repository after 60 days with no commits. Re-enable the workflow from the Actions tab, or push any commit.
 

@@ -1,0 +1,93 @@
+---
+import Base from '../layouts/Base.astro';
+import AlertBanner from '../components/AlertBanner.astro';
+import UnitToggle from '../components/UnitToggle.astro';
+import ForecastWeek from '../components/ForecastWeek.astro';
+import HourlyForecast from '../components/HourlyForecast.astro';
+import ForecastDiscussion from '../components/ForecastDiscussion.astro';
+import { getForecastBundle } from '../lib/snapshot.ts';
+import { fmtTime } from '../lib/render/forecast.ts';
+
+const b = getForecastBundle();
+const g = b?.grid;
+const updated = b?.forecast?.updated;
+---
+
+<Base
+  title="Forecast"
+  description="National Weather Service forecast for the CU Boulder Skywatch Observatory: hourly, seven-day, active alerts and the Boulder forecast discussion."
+>
+  <div class="wrap section">
+    <div class="head">
+      <div>
+        <h1>Forecast</h1>
+        <p class="fc-updated muted" data-updated={updated ?? ''}>
+          {updated ? `NWS forecast updated ${fmtTime(updated)}.` : 'Waiting for the National Weather Service.'}
+        </p>
+      </div>
+      <UnitToggle />
+    </div>
+
+    <AlertBanner full />
+
+    <section aria-labelledby="hourly-h" class="block">
+      <h2 id="hourly-h">Next 48 hours</h2>
+      <HourlyForecast />
+    </section>
+
+    <section aria-labelledby="week-h" class="block">
+      <h2 id="week-h">Seven days</h2>
+      <p class="muted small">Bars span each day’s low to high on a scale shared by the whole week. Select a day for the full wording.</p>
+      <ForecastWeek />
+    </section>
+
+    <section aria-labelledby="afd-h" class="block">
+      <h2 id="afd-h">Forecast discussion</h2>
+      <p class="muted">
+        Forecasters at the Boulder office explain their reasoning several times a day: which systems are coming, what the
+        models disagree on, and how confident they are.
+      </p>
+      <ForecastDiscussion />
+    </section>
+
+    <section aria-labelledby="src-h" class="block small muted">
+      <h2 id="src-h" class="visually-hidden">Source</h2>
+      <p>
+        Forecasts, alerts and the discussion come from the
+        <a href="https://www.weather.gov/documentation/services-web-api">National Weather Service API</a>
+        {g && <>for grid cell {g.office} {g.gridX},{g.gridY}</>}, and refresh in your browser every 15 minutes.
+        See the full <a href={`https://forecast.weather.gov/MapClick.php?lat=40.01&lon=-105.24`}>point forecast at weather.gov</a>.
+      </p>
+    </section>
+  </div>
+</Base>
+
+<script>
+  import { onForecast } from '../lib/forecast-client.ts';
+  import { fmtTime } from '../lib/render/forecast.ts';
+
+  const el = document.querySelector<HTMLElement>('.fc-updated');
+  if (el)
+    onForecast((b, _u, live) => {
+      if (!b.forecast) return;
+      el.textContent = `NWS forecast updated ${fmtTime(b.forecast.updated)}.${live !== false ? '' : ' Showing the copy saved at the last site update; weather.gov didn’t respond.'}`;
+      el.classList.toggle('stale', live === false);
+    });
+</script>
+
+<style>
+  .head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  h1 {
+    margin-bottom: 0.2em;
+  }
+  .block {
+    margin-top: clamp(2rem, 5vw, 3rem);
+  }
+</style>

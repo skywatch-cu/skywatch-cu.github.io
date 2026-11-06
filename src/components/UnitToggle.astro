@@ -1,0 +1,57 @@
+---
+/** °F / °C switch for forecast numbers. The choice is remembered per visitor (src/lib/units.ts). */
+---
+
+<div class="units" role="group" aria-label="Forecast units">
+  <button type="button" data-u="us" aria-pressed="true">°F, mph</button>
+  <button type="button" data-u="si" aria-pressed="false">°C, m s⁻¹</button>
+</div>
+
+<script>
+  import { getUnits, setUnits, type UnitSystem } from '../lib/units.ts';
+
+  const sync = () => {
+    const u = getUnits();
+    document.querySelectorAll<HTMLButtonElement>('.units button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.u === u)));
+  };
+  document.querySelectorAll<HTMLButtonElement>('.units button').forEach((b) =>
+    b.addEventListener('click', () => {
+      setUnits(b.dataset.u as UnitSystem);
+      sync();
+    }),
+  );
+  sync();
+</script>
+
+<style>
+  .units {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  button {
+    font: inherit;
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 0;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+  }
+  button + button {
+    border-left: 1px solid var(--rule);
+  }
+  button[aria-pressed='true'] {
+    color: #fff;
+    background: var(--zenith);
+  }
+  :global([data-theme='dark']) button[aria-pressed='true'] {
+    color: var(--bg);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) button[aria-pressed='true'] {
+      color: var(--bg);
+    }
+  }
+</style>

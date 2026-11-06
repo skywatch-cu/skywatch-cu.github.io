@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import type { ForecastBundle } from './providers/nws.ts';
 import type { Snapshot } from './types.ts';
 
 const EMPTY: Snapshot = {
@@ -24,4 +25,17 @@ export function getSnapshot(): Snapshot {
     cached = EMPTY;
   }
   return cached!;
+}
+
+let forecast: ForecastBundle | null | undefined;
+
+/** Build-time NWS forecast (public/data/forecast.json, written by scripts/fetch-data.ts). */
+export function getForecastBundle(): ForecastBundle | null {
+  if (forecast !== undefined) return forecast;
+  try {
+    forecast = JSON.parse(readFileSync(join(process.cwd(), 'public/data/forecast.json'), 'utf8'));
+  } catch {
+    forecast = null;
+  }
+  return forecast!;
 }

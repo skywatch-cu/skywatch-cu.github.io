@@ -1,0 +1,187 @@
+{
+ "features": [
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.ef8b16988297ce90f832b33c004863b8c91542d2.001.1",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.ef8b16988297ce90f832b33c004863b8c91542d2.001.1",
+    "@type": "wx:Alert",
+    "id": "urn:oid:2.49.0.1.840.0.ef8b16988297ce90f832b33c004863b8c91542d2.001.1",
+    "areaDesc": "Gore and Elk Mountains/Central Mountain Valleys",
+    "geocode": {
+     "SAME": [
+      "008037",
+      "008045",
+      "008097"
+     ],
+     "UGC": [
+      "COZ010"
+     ]
+    },
+    "affectedZones": [
+     "https://api.weather.gov/zones/forecast/COZ010"
+    ],
+    "references": [
+     {
+      "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.796c4f249fffbd6842526cc7d7ba763a25bcaa9b.001.1",
+      "identifier": "urn:oid:2.49.0.1.840.0.796c4f249fffbd6842526cc7d7ba763a25bcaa9b.001.1",
+      "sender": "w-nws.webmaster@noaa.gov",
+      "sent": "2026-11-03T21:16:00-07:00"
+     }
+    ],
+    "sent": "2026-11-04T10:14:00-07:00",
+    "effective": "2026-11-04T10:14:00-07:00",
+    "onset": "2026-11-04T14:00:00-07:00",
+    "expires": "2026-11-05T05:00:00-07:00",
+    "ends": "2026-11-05T05:00:00-07:00",
+    "status": "Actual",
+    "messageType": "Update",
+    "category": "Met",
+    "severity": "Moderate",
+    "certainty": "Likely",
+    "urgency": "Expected",
+    "event": "Winter Weather Advisory",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS Grand Junction CO",
+    "headline": "Winter Weather Advisory issued November 4 at 10:14AM MST until November 5 at 5:00AM MST by NWS Grand Junction CO",
+    "description": "* WHAT...Snow expected above 10000 feet. Total snow accumulations\nbetween 4 and 8 inches with locally higher amounts possible.\n\n* WHERE...Gore and Elk Mountains/Central Mountain Valleys.\n\n* WHEN...From 2 PM this afternoon to 5 AM MST Thursday.\n\n* IMPACTS...Travel could be very difficult. The hazardous conditions\nwill impact the Wednesday evening commute. Roads, and especially\nbridges and overpasses, will likely become slick and hazardous.",
+    "instruction": "Slow down and use caution while traveling. The latest road conditions\nfor the state you are calling from can be obtained by calling 5 1 1.",
+    "response": "Execute",
+    "note": null,
+    "parameters": {
+     "AWIPSidentifier": [
+      "WSWGJT"
+     ],
+     "WMOidentifier": [
+      "WWUS45 KGJT 041714"
+     ],
+     "NWSheadline": [
+      "WINTER WEATHER ADVISORY REMAINS IN EFFECT FROM 2 PM THIS AFTERNOON TO 5 AM MST THURSDAY ABOVE 10000 FEET"
+     ],
+     "BLOCKCHANNEL": [
+      "EAS",
+      "NWEM",
+      "CMAS"
+     ],
+     "VTEC": [
+      "/O.CON.KGJT.WW.Y.0017.261104T2100Z-261105T1200Z/"
+     ],
+     "eventEndingTime": [
+      "2026-11-05T05:00:00-07:00"
+     ]
+    },
+    "scope": "Public",
+    "code": "IPAWSv1.0",
+    "language": "en-US",
+    "web": "http://www.weather.gov",
+    "eventCode": {
+     "SAME": [
+      "NWS"
+     ],
+     "NationalWeatherService": [
+      "WWY"
+     ]
+    }
+   }
+  },
+  {
+   "id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.044a267a33818e81a976f5c92f0b3f8fcf1d2ceb.001.1",
+   "type": "Feature",
+   "geometry": null,
+   "properties": {
+    "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.044a267a33818e81a976f5c92f0b3f8fcf1d2ceb.001.1",
+    "@type": "wx:Alert",
+    "id": "urn:oid:2.49.0.1.840.0.044a267a33818e81a976f5c92f0b3f8fcf1d2ceb.001.1",
+    "areaDesc": "Western Mosquito Range/East Lake County Above 11000 Ft; Eastern Sawatch Mountains above 11000 Ft; Western Chaffee County Between 9000 and 11000 Ft; Western Mosquito Range/East Chaffee County above 9000Ft; Pikes Peak above 11000 Ft",
+    "geocode": {
+     "SAME": [
+      "008065",
+      "008015",
+      "008109",
+      "008041",
+      "008119"
+     ],
+     "UGC": [
+      "COZ058",
+      "COZ060",
+      "COZ061",
+      "COZ063",
+      "COZ082"
+     ]
+    },
+    "affectedZones": [
+     "https://api.weather.gov/zones/forecast/COZ058",
+     "https://api.weather.gov/zones/forecast/COZ060",
+     "https://api.weather.gov/zones/forecast/COZ061",
+     "https://api.weather.gov/zones/forecast/COZ063",
+     "https://api.weather.gov/zones/forecast/COZ082"
+    ],
+    "references": [
+     {
+      "@id": "https://api.weather.gov/alerts/urn:oid:2.49.0.1.840.0.6ac659d50d2ed9d044b7de873a8b708cf48dc49e.001.1",
+      "identifier": "urn:oid:2.49.0.1.840.0.6ac659d50d2ed9d044b7de873a8b708cf48dc49e.001.1",
+      "sender": "w-nws.webmaster@noaa.gov",
+      "sent": "2026-11-04T04:49:00-07:00"
+     }
+    ],
+    "sent": "2026-11-04T09:48:00-07:00",
+    "effective": "2026-11-04T09:48:00-07:00",
+    "onset": "2026-11-04T14:00:00-07:00",
+    "expires": "2026-11-04T19:30:00-07:00",
+    "ends": "2026-11-05T05:00:00-07:00",
+    "status": "Actual",
+    "messageType": "Update",
+    "category": "Met",
+    "severity": "Moderate",
+    "certainty": "Likely",
+    "urgency": "Expected",
+    "event": "Winter Weather Advisory",
+    "sender": "w-nws.webmaster@noaa.gov",
+    "senderName": "NWS Pueblo CO",
+    "headline": "Winter Weather Advisory issued November 4 at 9:48AM MST until November 5 at 5:00AM MST by NWS Pueblo CO",
+    "description": "* WHAT...Snow expected. Total snow accumulations between 4 and 9\ninches. Locally higher amounts up to 11 inches will be possible.\n\n* WHERE...Eastern Sawatch Mountains Above 11000 Feet, Pikes Peak\nAbove 11000 Feet, Western Chaffee County Between 9000 and 11000\nFeet, Western Mosquito Range/East Chaffee County Above 9000 Feet,\nand Western Mosquito Range/East Lake County Above 11000 Feet.\n\n* WHEN...From 2 PM this afternoon to 5 AM MST Thursday.\n\n* IMPACTS...Travel could be very difficult to impossible. The\nhazardous conditions will impact the Wednesday evening commute.",
+    "instruction": "Slow down and use caution while traveling. The latest road conditions\nfor the state you are calling from can be obtained by calling 5 1 1.",
+    "response": "Execute",
+    "note": null,
+    "parameters": {
+     "AWIPSidentifier": [
+      "WSWPUB"
+     ],
+     "WMOidentifier": [
+      "WWUS45 KPUB 041648"
+     ],
+     "NWSheadline": [
+      "WINTER WEATHER ADVISORY REMAINS IN EFFECT FROM 2 PM THIS AFTERNOON TO 5 AM MST THURSDAY"
+     ],
+     "BLOCKCHANNEL": [
+      "EAS",
+      "NWEM",
+      "CMAS"
+     ],
+     "VTEC": [
+      "/O.CON.KPUB.WW.Y.0013.261104T2100Z-261105T1200Z/"
+     ],
+     "eventEndingTime": [
+      "2026-11-05T05:00:00-07:00"
+     ],
+     "expiredReferences": [
+      "w-nws.webmaster@noaa.gov,urn:oid:2.49.0.1.840.0.f3e429b170a7159143d9f3a01ac933eb32c552f1.001.1,2026-11-03T21:36:00-07:00"
+     ]
+    },
+    "scope": "Public",
+    "code": "IPAWSv1.0",
+    "language": "en-US",
+    "web": "http://www.weather.gov",
+    "eventCode": {
+     "SAME": [
+      "NWS"
+     ],
+     "NationalWeatherService": [
+      "WWY"
+     ]
+    }
+   }
+  }
+ ]
+}
