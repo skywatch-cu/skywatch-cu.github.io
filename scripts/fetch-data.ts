@@ -4,6 +4,7 @@
  * Writes:
  *   .cache/snapshot.json          current readings, today's plot images, special-event list
  *   public/data/series/<id>.json  last 24 h of each logged instrument, 1-min bins
+ *   public/data/forecast.json     NWS forecast, hourly forecast, alerts and forecast discussion
  *
  * If a source fails, the previous output (restored from the Actions cache in CI) is kept,
  * so a legacy-server outage leaves stale data on the site rather than failing the deploy.
@@ -11,13 +12,15 @@
  * Run: node scripts/fetch-data.ts   (Node >= 22.18 strips TypeScript types natively)
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { INSTRUMENTS, type Instrument } from '../src/data/instruments.ts';
+import { INSTRUMENTS, STATION, type Instrument } from '../src/data/instruments.ts';
 import { binSeries, denverDate, parseDat } from '../src/lib/dat.ts';
 import { LEGACY_ORIGIN, parseEvents, parsePlotImages, parseStatus } from '../src/lib/legacy.ts';
+import { DEFAULT_GRID, getBundle, NWS_USER_AGENT, resolveGrid, type ForecastBundle } from '../src/lib/providers/nws.ts';
 import type { Snapshot, SeriesFile } from '../src/lib/types.ts';
 
 const CACHE = new URL('../.cache/', import.meta.url);
 const SERIES_DIR = new URL('../public/data/series/', import.meta.url);
+const FORECAST_FILE = new URL('../public/data/forecast.json', import.meta.url);
 const WINDOW_SEC = 86_400;
 
 async function get(path: string): Promise<string> {
@@ -86,6 +89,27 @@ async function readPrevious(): Promise<Snapshot | null> {
   }
 }
 
+async function readJson<T>(url: URL): Promise<T | null> {
+  try {
+    return JSON.parse(await readFile(url, 'utf8')) as T;
+  } catch {
+    return null;
+  }
+}
+
+/** NWS forecast for the station. Re-resolves the grid each run (NWS occasionally re-grids an office). */
+async function buildForecast(errors: string[]): Promise<void> {
+  const o = { userAgent: NWS_USER_AGENT };
+  const prev = await readJson<ForecastBundle>(FORECAST_FILE);
+  const grid = await resolveGrid(STATION.lat, STATION.lon, o).catch((e) => {
+    errors.push(`NWS grid lookup: ${e.message}`);
+    return prev?.grid ?? DEFAULT_GRID;
+  });
+  const { bundle, errors: errs } = await getBundle(STATION.lat, STATION.lon, grid, o, prev);
+  errors.push(...errs);
+  await writeFile(FORECAST_FILE, JSON.stringify(bundle));
+}
+
 async function main() {
   const now = new Date();
   await mkdir(CACHE, { recursive: true });
@@ -125,13 +149,16 @@ async function main() {
     ),
   ];
 
-  const results = await Promise.allSettled(jobs);
+  const nwsErrors: string[] = [];
+  const [results] = await Promise.all([Promise.allSettled(jobs), buildForecast(nwsErrors)]);
   for (const r of results) if (r.status === 'rejected') errors.push(String(r.reason?.message ?? r.reason));
 
   await writeFile(new URL('snapshot.json', CACHE), JSON.stringify(snapshot, null, 1));
   const ok = results.length - errors.length;
   console.log(`fetch-data: ${ok}/${results.length} sources OK`);
   for (const e of errors) console.warn(`  ! ${e}`);
+  console.log(`fetch-data: NWS forecast ${nwsErrors.length ? `with ${nwsErrors.length} error(s)` : 'OK'}`);
+  for (const e of nwsErrors) console.warn(`  ! ${e}`);
 }
 
 await main();

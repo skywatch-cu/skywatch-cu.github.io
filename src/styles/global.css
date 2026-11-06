@@ -27,6 +27,14 @@
   --c-muted: #8e9aa8;
   --c-ink: #14202e;
 
+  /* Forecast: temperature ramp and NWS alert severities */
+  --c-cold: #3f6fb5;
+  --c-mild: #8a9a5b;
+  --c-warm: #c4572f;
+  --sev-high: #b3261e;
+  --sev-mid: #b8620a;
+  --sev-low: #8a7a12;
+
   --font: 'Instrument Sans Variable', 'Helvetica Neue', Arial, sans-serif;
   --step--1: 0.833rem;
   --step-0: 1rem;
@@ -61,6 +69,12 @@
     --c-cloud-2: #9fb0c4;
     --c-cloud-3: #6f8399;
     --c-ink: #e4eaf1;
+  --c-cold: #79a6e6;
+  --c-mild: #b5c27e;
+  --c-warm: #ef8a5f;
+  --sev-high: #f0776c;
+  --sev-mid: #f0a35a;
+  --sev-low: #d8c55a;
     color-scheme: dark;
   }
 }
@@ -84,6 +98,12 @@
   --c-cloud-2: #9fb0c4;
   --c-cloud-3: #6f8399;
   --c-ink: #e4eaf1;
+  --c-cold: #79a6e6;
+  --c-mild: #b5c27e;
+  --c-warm: #ef8a5f;
+  --sev-high: #f0776c;
+  --sev-mid: #f0a35a;
+  --sev-low: #d8c55a;
   color-scheme: dark;
 }
 

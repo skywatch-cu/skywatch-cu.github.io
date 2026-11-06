@@ -1,0 +1,131 @@
+
+000
+FXUS65 KBOU 041741
+AFDBOU
+
+Area Forecast Discussion
+National Weather Service Denver/Boulder CO
+1041 AM MST Wed Nov 4 2026
+
+.KEY MESSAGES...
+
+- Precipitation will form across the mountains and foothills along
+  and south of I-70 for this afternoon through early Thursday
+  morning. 
+
+- Snowfall amounts of 3-10" with isolated higher amounts 
+  possible.
+  
+- The highest snowfall amounts and worst road conditions are 
+  expected for western Park County, possibly extending into 
+  northern Park County.
+
+- Pleasant temperatures and dry conditions are expected Thursday
+  through early next week. 
+
+&&
+
+.DISCUSSION /Through Tuesday/...
+Issued at 1123 PM MST Tue Nov 3 2026
+
+We are expecting a quiet overnight with mostly clear skies. Skies 
+will be partly cloudy in the morning with increasing clouds by 
+Wednesday afternoon for the high country, Denver metro, and the 
+adjacent plains. Temperatures will top out in the mid to upper 50s 
+for the plains once again. The trough and associated low are 
+currently over Nevada. As this feature moves east, it will bring us 
+the 2nd storm system of the week, which will quickly move through 
+our area on Wednesday afternoon and into Wednesday night. We expect 
+the highest impacts for the central and southern high country. 
+
+Precipitation will increase from west to east starting mid afternoon 
+on Wednesday in the high country. The precipitation shield should 
+shift south and east through Wednesday evening and into the 
+overnight. On Wednesday evening, scattered rain showers and perhaps 
+a few snowflakes mixing in are possible for the Palmer Divide. There 
+is a low but nonzero chance (~10-15%) that this potential could even 
+extend into far southern and western parts of the Denver metro. No 
+snow accumulation is expected in these locations. Some rain showers 
+are possible for southern Lincoln County late Wednesday night into 
+early Thursday morning as the low pushes off to the east of our area.
+
+High resolution model guidance has shown an uptick in moisture 
+compared to model runs over the last 24-36 hours. As the afternoon 
+progresses on Wednesday, there should be some modest instability 
+present in the southern high country along with increasing lapse 
+rates. Snow levels are trending lower as well. Snow levels should 
+start around 9,000 feet early Wednesday afternoon. They are now 
+forecast to drop down to 7,500-8,000 feet on Wednesday evening. Snow 
+levels should drop even lower to 6,500-7,000 feet just as the system 
+starts to exit the area early Thursday AM. The track of the low 
+across our southwestern counties or just to the south would bring 
+northeast to east winds at the surface. This flow could extend up in 
+the atmosphere a few kilometers. In this type of flow, Park County 
+looks favored for some upslope flow/enhancement. In particular, the 
+southern Front Range foothills, the Mosquito Range, the Highway 285 
+corridor, and most of Park County look favored for the heaviest 
+snowfall totals from this system.
+
+Altogether, most short-term models have trended up with snowfall 
+totals and QPF in the last 24-36 hours. QPF amounts of 0.25-0.75" 
+should be common in Park County and adjacent locations with isolated 
+higher amounts possible at the highest elevations. DESI 
+probabilities are honing in on the Mosquito Range/western Park 
+County where there is a 50-60% chance that these locations receive 6 
+inches or more of snowfall. Thus, we have issued a Winter Weather 
+Advisory for the mountains of Summit County, Park County, the 
+Mosquito Range, Indian Peaks, and South Park. It runs from 2pm 
+Wednesday to 2am Thursday. Most of Park County should get 3+ inches 
+snowfall with the Mosquito Range forecast to receive 5-10 inches of 
+snowfall with localized higher amounts possible. Areas along and 
+adjacent to the I-70 corridor above 7,500 feet, including the 
+northern Gore Range, are forecast to get 3-6 inches of snowfall with 
+areas to the north getting much less.
+
+There is still good agreement that ridging aloft moves back in for 
+Thursday followed by a trough passing to our north on Friday. This 
+system will lack moisture for our area. As a result, there are only 
+low precipitation chances for Friday afternoon in the high country. 
+Temperatures are forecast to reach the mid to upper 50s for the 
+plains on Thursday and Friday. Ridging resumes once again for the 
+weekend and into next week. We expect dry conditions across our area 
+from Saturday through the end of the forecast period. The ridge is 
+expected to strengthen and the center should move closer to us for 
+the end of the weekend and into early next week. Mid 60s look 
+increasingly likely for Denver for Sunday and Monday according to 
+ensemble guidance. This would be 5-10 degrees above average for this 
+time of year. Temperatures on the eastern plains could even be 
+pushing 70 F. For Tuesday, more zonal flow could be in place 
+dropping high temperatures back into the low 60s for most of the 
+plains. 
+
+&&
+
+.AVIATION /18Z TAFS through 18Z Thursday/...
+Issued at 1037 AM MST Wed Nov 4 2026
+
+VFR conditions expected through the TAF period. Winds are
+currently light (<7 kts) and gradually transitioning to a
+northeasterly component, with northeasterly winds remaining in
+place through the late afternoon/evening period. CAMs still hint
+at a low chance (10-20%) of light rain showers at or around APA
+this evening with the system that is moving through, so have kept
+the PROB30 in the TAF. 
+
+Overnight, drainage flow will be a bit more westerly (240-260
+versus 200-230 degrees) and should remain under 8 kts. Quiet day
+expected tomorrow, with light and variable winds in the morning,
+transitioning to an easterly wind by the afternoon. 
+
+&&
+
+.BOU WATCHES/WARNINGS/ADVISORIES...
+Winter Weather Advisory from 2 PM this afternoon to 2 AM MST 
+Thursday for COZ034-037.
+
+&&
+
+$$
+
+DISCUSSION...MV
+AVIATION...MAI

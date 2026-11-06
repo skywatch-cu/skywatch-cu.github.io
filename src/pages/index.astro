@@ -3,9 +3,12 @@ import Base from '../layouts/Base.astro';
 import SkyDisc from '../components/SkyDisc.astro';
 import Readings from '../components/Readings.astro';
 import TimeSeries from '../components/TimeSeries.astro';
+import AlertBanner from '../components/AlertBanner.astro';
+import ForecastOutlook from '../components/ForecastOutlook.astro';
 ---
 
 <Base>
+  <div class="wrap"><AlertBanner /></div>
   <section class="hero">
     <div class="wrap hero-grid">
       <SkyDisc />
@@ -17,6 +20,17 @@ import TimeSeries from '../components/TimeSeries.astro';
         </p>
         <Readings />
       </div>
+    </div>
+  </section>
+
+  <section class="section forecast">
+    <div class="wrap">
+      <div class="fc-head">
+        <h2>Forecast</h2>
+        <a href="/forecast/">Hourly, seven-day and the forecasters’ discussion</a>
+      </div>
+      <ForecastOutlook />
+      <p class="small muted">From the National Weather Service office in Boulder.</p>
     </div>
   </section>
 
@@ -63,6 +77,20 @@ import TimeSeries from '../components/TimeSeries.astro';
 </Base>
 
 <style>
+  .fc-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.25rem 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .fc-head h2 {
+    margin: 0;
+  }
+  .forecast .small {
+    margin: 0.75rem 0 0;
+  }
   .hero {
     padding-block: clamp(1.5rem, 4vw, 3rem);
   }

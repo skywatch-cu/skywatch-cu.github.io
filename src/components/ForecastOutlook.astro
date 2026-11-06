@@ -1,0 +1,90 @@
+---
+/** The next three NWS forecast periods, for the home page. */
+import { getForecastBundle } from '../lib/snapshot.ts';
+import { renderOutlook } from '../lib/render/forecast.ts';
+
+const f = getForecastBundle()?.forecast;
+---
+
+<div class="outlook">
+  {
+    f ? (
+      <ul class="ol-list" set:html={renderOutlook(f.periods, 'us')} />
+    ) : (
+      <ul class="ol-list">
+        <li class="muted">The National Weather Service forecast didn’t load at the last update.</li>
+      </ul>
+    )
+  }
+</div>
+
+<script>
+  import { onForecast } from '../lib/forecast-client.ts';
+  import { renderOutlook } from '../lib/render/forecast.ts';
+
+  const list = document.querySelector<HTMLElement>('.ol-list');
+  if (list) onForecast((b, u) => b.forecast && (list.innerHTML = renderOutlook(b.forecast.periods, u)));
+</script>
+
+<style>
+  .ol-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--rule);
+  }
+  @media (min-width: 44rem) {
+    .ol-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border-top: 0;
+    }
+  }
+  .ol-list :global(.ol) {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas: 'name temp' 'short short' 'meta meta';
+    gap: 0.1rem 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  @media (min-width: 44rem) {
+    .ol-list :global(.ol) {
+      padding: 0.25rem 1.25rem;
+      border-bottom: 0;
+      border-left: 2px solid var(--zenith);
+    }
+  }
+  .ol-list :global(.ol-name) {
+    grid-area: name;
+    font-weight: 600;
+  }
+  .ol-list :global(.ol-temp) {
+    grid-area: temp;
+    font-size: var(--step-2);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .ol-list :global(.ol-hl) {
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--ink-soft);
+    letter-spacing: 0;
+  }
+  .ol-list :global(.ol-short) {
+    grid-area: short;
+  }
+  .ol-list :global(.ol-meta) {
+    grid-area: meta;
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+  }
+  .ol-list :global(.pop) {
+    color: var(--c-precip);
+    font-weight: 600;
+    margin-right: 0.4rem;
+  }
+</style>

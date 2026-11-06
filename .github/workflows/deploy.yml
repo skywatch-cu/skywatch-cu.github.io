@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
   # Refresh readings, series and today's plot links from the legacy server.
-  # GitHub may delay scheduled runs by several minutes under load.
+  # GitHub throttles this schedule to every few hours in practice, so an external timer
+  # also calls workflow_dispatch every 10 min (docs/scheduled-refresh.md). The cron stays
+  # as a backstop if that timer stops.
   schedule:
     - cron: '*/15 * * * *'
   workflow_dispatch:
@@ -42,10 +44,11 @@ jobs:
           path: |
             .cache
             public/data/series
+            public/data/forecast.json
           key: skywatch-data-${{ github.run_id }}
           restore-keys: skywatch-data-
 
-      - name: Fetch data from skywatch.colorado.edu
+      - name: Fetch observatory data and the NWS forecast
         run: npm run fetch-data
 
       - run: npx astro build

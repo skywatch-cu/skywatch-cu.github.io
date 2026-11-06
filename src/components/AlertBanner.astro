@@ -1,0 +1,69 @@
+---
+/**
+ * Active NWS watches, warnings and advisories for the observatory's location.
+ * Renders nothing when there are none. `full` adds the description and instructions.
+ */
+import { getForecastBundle } from '../lib/snapshot.ts';
+import { renderAlerts } from '../lib/render/forecast.ts';
+
+interface Props {
+  full?: boolean;
+}
+const { full = false } = Astro.props;
+const alerts = getForecastBundle()?.alerts ?? [];
+---
+
+<div class="alerts" data-full={String(full)} aria-live="polite" set:html={renderAlerts(alerts, full)} />
+
+<script>
+  import { onForecast } from '../lib/forecast-client.ts';
+  import { renderAlerts } from '../lib/render/forecast.ts';
+
+  document.querySelectorAll<HTMLElement>('.alerts').forEach((el) => {
+    let last = el.innerHTML;
+    onForecast((b) => {
+      if (!b.alerts) return;
+      const html = renderAlerts(b.alerts, el.dataset.full === 'true');
+      // Only touch the DOM on change, so an open <details> stays open across refreshes.
+      if (html !== last) el.innerHTML = last = html;
+    });
+  });
+</script>
+
+<style>
+  .alerts {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .alerts:not(:empty) {
+    margin-block: 1rem;
+  }
+  .alerts :global(.alert) {
+    border-left: 6px solid var(--sev);
+    background: color-mix(in srgb, var(--sev) 12%, var(--surface));
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+  }
+  .alerts :global(.alert p) {
+    margin-bottom: 0.25rem;
+  }
+  .alerts :global(.sev-high) {
+    --sev: var(--sev-high);
+  }
+  .alerts :global(.sev-mid) {
+    --sev: var(--sev-mid);
+  }
+  .alerts :global(.sev-low) {
+    --sev: var(--sev-low);
+  }
+  .alerts :global(.alert-when),
+  .alerts :global(.alert-sender) {
+    color: var(--ink-soft);
+    font-size: var(--step--1);
+  }
+  .alerts :global(summary) {
+    cursor: pointer;
+    color: var(--link);
+    font-size: var(--step--1);
+  }
+</style>

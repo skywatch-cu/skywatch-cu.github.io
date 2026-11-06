@@ -6,3 +6,4 @@ dist/
 # Written by scripts/fetch-data.ts on every build; persisted in CI via actions/cache
 .cache/
 public/data/series/
+public/data/forecast.json

@@ -1,0 +1,116 @@
+---
+/** Seven-day NWS forecast, one row per day; expand a row for the forecaster's wording. */
+import { getForecastBundle } from '../lib/snapshot.ts';
+import { renderWeek } from '../lib/render/forecast.ts';
+
+const f = getForecastBundle()?.forecast;
+---
+
+<ul class="week" set:html={f ? renderWeek(f.periods, 'us') : ''} />
+{
+  !f && (
+    <p class="week-empty muted">
+      The seven-day forecast didn’t load at the last update. It will appear here once the National Weather Service responds.
+    </p>
+  )
+}
+
+<script>
+  import { onForecast } from '../lib/forecast-client.ts';
+  import { renderWeek } from '../lib/render/forecast.ts';
+
+  const el = document.querySelector<HTMLElement>('.week');
+  if (el)
+    onForecast((b, u) => {
+      if (!b.forecast) return;
+      // Keep any rows the reader has expanded.
+      const open = [...el.querySelectorAll('details')].map((d) => d.open);
+      el.innerHTML = renderWeek(b.forecast.periods, u);
+      el.querySelectorAll('details').forEach((d, i) => (d.open = open[i] ?? false));
+      document.querySelector('.week-empty')?.remove();
+    });
+</script>
+
+<style>
+  .week:empty {
+    display: none;
+  }
+  .week {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--rule);
+  }
+  .week :global(.wk) {
+    border-bottom: 1px solid var(--rule);
+  }
+  .week :global(summary) {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 9rem) 2.5rem minmax(4rem, 1fr) 2.5rem;
+    grid-template-areas: 'name lo bar hi' 'short short short short';
+    align-items: center;
+    gap: 0.2rem 0.6rem;
+    padding: 0.7rem 0;
+    cursor: pointer;
+    list-style: none;
+  }
+  .week :global(summary::-webkit-details-marker) {
+    display: none;
+  }
+  @media (min-width: 52rem) {
+    .week :global(summary) {
+      grid-template-columns: 9rem minmax(10rem, 1.3fr) 2.5rem minmax(8rem, 1fr) 2.5rem;
+      grid-template-areas: 'name short lo bar hi';
+    }
+  }
+  .week :global(.wk-name) {
+    grid-area: name;
+    font-weight: 600;
+  }
+  .week :global(.wk-short) {
+    grid-area: short;
+    color: var(--ink-soft);
+  }
+  .week :global(.wk-lo),
+  .week :global(.wk-hi) {
+    font-size: var(--step-1);
+    font-weight: 600;
+    text-align: right;
+  }
+  .week :global(.wk-lo) {
+    grid-area: lo;
+    color: var(--ink-soft);
+  }
+  .week :global(.wk-hi) {
+    grid-area: hi;
+    text-align: left;
+  }
+  .week :global(.wk-bar) {
+    grid-area: bar;
+    position: relative;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--rule) 60%, transparent);
+  }
+  .week :global(.wk-bar span) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+    background-image: linear-gradient(90deg, var(--c-cold), var(--c-mild), var(--c-warm));
+  }
+  .week :global(.pop) {
+    color: var(--c-precip);
+    font-weight: 600;
+    margin-left: 0.25rem;
+  }
+  .week :global(.wk-detail) {
+    padding: 0 0 0.9rem;
+  }
+  .week :global(.wk-detail p) {
+    margin-bottom: 0.5rem;
+  }
+  .week :global(summary:hover .wk-name) {
+    text-decoration: underline;
+  }
+</style>
