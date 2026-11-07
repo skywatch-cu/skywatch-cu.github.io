@@ -1,7 +1,8 @@
 ---
 /**
  * HRRR forecast against the station's own measurements: the last 24 h observed, with the
- * model's short-range forecasts over the same period and its latest run continuing ahead.
+ * model's short-range and day-ahead forecasts over the same period and its latest run continuing
+ * ahead. The table scores both lead times; a switch picks which one the charts show.
  * Drawn in the browser from public/data/series/*.json and public/data/hrrr.json; the model
  * is then refetched from Open-Meteo directly so its forecast stays current.
  */
@@ -13,14 +14,22 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
 ---
 
 <div class="fvo" data-sources={JSON.stringify(sources)}>
-  <dl class="fvo-stats" aria-live="polite"></dl>
+  <div class="fvo-stats" aria-live="polite"></div>
+  <div class="fvo-lead" role="group" aria-label="Forecast shown in the charts">
+    <span class="small muted">Charts show</span>
+    <span class="fvo-switch">
+      <button type="button" data-lead="short" aria-pressed="true">Short-range</button>
+      <button type="button" data-lead="day" aria-pressed="false">Day-ahead</button>
+    </span>
+  </div>
   <figure class="fvo-fig">
     <div class="fvo-plot" data-chart="sun" style="min-height:320px">
       <p class="muted small">Loading the comparison…</p>
     </div>
     <figcaption>
       Sunlight on a horizontal surface. Solid lines: the observatory’s pyranometer (global) and SPN1 (diffuse),
-      1-minute means. Dashed lines: HRRR, 15-minute means. The vertical line marks the latest observation.
+      1-minute means. Dashed lines: HRRR, 15-minute means: the forecast chosen above up to the latest observation
+      (vertical line), then the latest run.
     </figcaption>
   </figure>
   <figure class="fvo-fig fvo-precip">
@@ -41,7 +50,7 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
   import { fmtTime } from '../lib/render/forecast.ts';
   import type { SeriesFile } from '../lib/types.ts';
   import { getUnits, precipUnit, precipValue } from '../lib/units.ts';
-  import { compare, type ObservedInputs } from '../lib/verify.ts';
+  import { compare, windowEnd, withLead, type Lead, type ObservedInputs } from '../lib/verify.ts';
 
   const root = document.querySelector<HTMLElement>('.fvo');
   if (root) {
@@ -51,6 +60,7 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
     const stats = root.querySelector<HTMLElement>('.fvo-stats')!;
     const note = root.querySelector<HTMLElement>('.fvo-src')!;
     const pCap = root.querySelector<HTMLElement>('.fvo-precip figcaption')!;
+    const leadButtons = root.querySelectorAll<HTMLButtonElement>('.fvo-lead button');
     const css = (n: string) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
     const hhmm = (ts: number) =>
       new Date(ts * 1000).toLocaleString('en-US', { timeZone: 'America/Denver', weekday: 'short', hour: 'numeric', minute: '2-digit' });
@@ -60,6 +70,7 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
     let obs: ObservedInputs = {};
     let model: ModelSeries | null = null;
     let live: boolean | null = null;
+    let lead: Lead = 'short';
     const plots: uPlot[] = [];
 
     const series = (id: string, v: string): Promise<SeriesFile | null> =>
@@ -113,7 +124,16 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
 
     const draw = () => {
       if (!model) return;
-      const c = compare(obs, model, STATION.lat, STATION.lon);
+      const to = windowEnd(obs);
+      const short = compare(obs, model, STATION.lat, STATION.lon);
+      const dayModel = to == null ? null : withLead(model, 'day', to);
+      const day = dayModel ? compare(obs, dayModel, STATION.lat, STATION.lon) : null;
+      leadButtons.forEach((b) => {
+        b.disabled = b.dataset.lead === 'day' && !dayModel;
+        b.setAttribute('aria-pressed', String(b.dataset.lead === (dayModel ? lead : 'short')));
+      });
+      // The series and comparison the charts show.
+      const [shown, c] = lead === 'day' && dayModel && day ? [dayModel, day] : [model, short];
       plots.splice(0).forEach((p) => p.destroy());
       if (!c) {
         sunHost.innerHTML = '<p class="muted small">The observations didn’t load. Reload the page to try again.</p>';
@@ -122,7 +142,13 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
         return;
       }
       const u = getUnits();
-      stats.innerHTML = renderScores(c, u);
+      stats.innerHTML = renderScores(
+        [
+          { label: 'Short-range', c: short },
+          { label: 'Day-ahead', c: day },
+        ],
+        u,
+      );
 
       const xMax = Math.min(c.to + AHEAD, (model.t.at(-1) ?? c.to) + model.intervalSec);
       const show = model.t.map((s) => s >= c.from && s + model!.intervalSec <= xMax);
@@ -139,8 +165,8 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
       const sun = uPlot.join([
         clip(obs.ghi) as uPlot.AlignedData,
         clip(obs.diffuse) as uPlot.AlignedData,
-        [mT, pick(model.ghi)],
-        [mT, pick(model.diffuse)],
+        [mT, pick(shown.ghi)],
+        [mT, pick(shown.diffuse)],
       ]);
       const W = 'W m⁻²';
       const sOpts = baseOpts(sunHost, 300, `Irradiance (${W})`, xMax, c.to);
@@ -174,9 +200,12 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
 
       const cell = `${model.cell.lat.toFixed(3)}° N, ${Math.abs(model.cell.lon).toFixed(3)}° W, ${model.cell.elevation.toFixed(0)} m`;
       note.innerHTML =
-        `Statistics cover the 24 hours to ${hhmm(c.to)}. Bias and RMSE use 15-minute means while the sun is above the horizon; ` +
-        `bias is HRRR minus observed. Past HRRR values are short-range forecasts stitched from the first hours of successive hourly runs` +
-        `${model.runInit ? `; the forecast ahead is from the run initialised ${fmtTime(model.runInit)}` : ''}. ` +
+        `Statistics cover the 24 hours to ${hhmm(c.to)}${c.ghi.score ? `, ${c.ghi.score.n} daytime intervals` : ''}. ` +
+        `Bias and RMSE use 15-minute means while the sun is above the horizon; bias is HRRR minus observed, and the percentage compares total solar energy. ` +
+        `Short-range values are stitched from the first hours of successive hourly runs. ` +
+        `Day-ahead values come from the 48-hour runs started every 6 hours, forecasting each time 24 to 30 hours ahead` +
+        `${dayModel ? '' : ' (not available right now)'}. ` +
+        `${model.runInit ? `The forecast ahead is from the run initialised ${fmtTime(model.runInit)}. ` : ''}` +
         `HRRR grid cell centred at ${cell}. Model data: NOAA HRRR via <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0).` +
         (live === false ? ' Showing the copy saved at the last site update; Open-Meteo didn’t respond.' : '');
     };
@@ -209,6 +238,12 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
       draw();
     })();
 
+    leadButtons.forEach((b) =>
+      b.addEventListener('click', () => {
+        lead = b.dataset.lead as Lead;
+        draw();
+      }),
+    );
     new ResizeObserver(resize).observe(root);
     window.addEventListener('unitchange', draw);
     window.addEventListener('themechange', draw);
@@ -218,22 +253,91 @@ const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipita
 
 <style>
   .fvo-stats {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.75rem 1.5rem;
-    margin: 0 0 1.25rem;
+    overflow-x: auto;
+    margin: 0 0 1rem;
   }
-  @media (min-width: 48rem) {
-    .fvo-stats {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+  .fvo-stats :global(.fvo-table) {
+    border-collapse: collapse;
+    width: 100%;
+    font-variant-numeric: tabular-nums;
+  }
+  .fvo-stats :global(th),
+  .fvo-stats :global(td) {
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  .fvo-stats :global(thead th) {
+    text-align: right;
+    font-weight: 600;
+    border-bottom-width: 2px;
+  }
+  .fvo-stats :global(tbody th) {
+    text-align: left;
+    font-weight: 600;
+    padding-left: 0;
+  }
+  .fvo-stats :global(td) {
+    text-align: right;
+    white-space: nowrap;
+  }
+  @media (max-width: 40rem) {
+    .fvo-stats :global(.fvo-table) {
+      font-size: var(--step--1);
+    }
+    .fvo-stats :global(th),
+    .fvo-stats :global(td) {
+      padding: 0.4rem 0.3rem;
+    }
+    .fvo-stats :global(td .muted) {
+      display: block;
     }
   }
-  .fvo-stats :global(dt) {
-    font-weight: 600;
-  }
-  .fvo-stats :global(dd) {
-    margin: 0.1rem 0 0;
+  .fvo-stats :global(.unit) {
+    font-weight: 400;
     color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .fvo-lead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+    margin: 0 0 1rem;
+  }
+  .fvo-switch {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .fvo-switch button {
+    font: inherit;
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 0;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+  }
+  .fvo-switch button + button {
+    border-left: 1px solid var(--rule);
+  }
+  .fvo-switch button[aria-pressed='true'] {
+    color: #fff;
+    background: var(--zenith);
+  }
+  .fvo-switch button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  :global([data-theme='dark']) .fvo-switch button[aria-pressed='true'] {
+    color: var(--bg);
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .fvo-switch button[aria-pressed='true'] {
+      color: var(--bg);
+    }
   }
   .fvo-fig {
     background: var(--surface);

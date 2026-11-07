@@ -1,9 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { normalizeMinutely15 } from '../src/lib/providers/openmeteo.ts';
-import { accumIncrements, compare, cumsum, intervalMeans, score, solarElevation } from '../src/lib/verify.ts';
+import { normalizeDayAhead, normalizeMinutely15 } from '../src/lib/providers/openmeteo.ts';
+import { renderScores } from '../src/lib/render/verify.ts';
+import { accumIncrements, compare, cumsum, intervalMeans, score, solarElevation, windowEnd, withLead } from '../src/lib/verify.ts';
 
-const model = normalizeMinutely15(JSON.parse(readFileSync(new URL('./fixtures/openmeteo/hrrr.json', import.meta.url), 'utf8')));
+const fx = (name: string) => JSON.parse(readFileSync(new URL(`./fixtures/openmeteo/${name}`, import.meta.url), 'utf8'));
+const model = normalizeMinutely15(fx('hrrr.json'));
+const day1 = fx('hrrr-day1.json');
 const LAT = 40.01;
 const LON = -105.24;
 
@@ -77,5 +80,48 @@ describe('compare', () => {
 
   it('returns null without observations', () => {
     expect(compare({}, model, LAT, LON)).toBeNull();
+  });
+});
+
+describe('day-ahead', () => {
+  const d = normalizeDayAhead(day1, model.t);
+
+  it('aligns the previous-day values on the latest series by interval start', () => {
+    expect(d.ghi).toHaveLength(model.t.length);
+    const raw = day1.minutely_15;
+    const k = raw.shortwave_radiation_previous_day1.findIndex((v: number) => v > 300);
+    const i = model.t.indexOf(raw.time[k] - 900);
+    expect(d.ghi[i]).toBe(raw.shortwave_radiation_previous_day1[k]);
+    // The fixture ends a day before the latest series does.
+    expect(d.ghi.at(-1)).toBeNull();
+  });
+
+  it('uses day-ahead values up to the window end and the latest run after it', () => {
+    const to = model.t[120];
+    const mixed = withLead({ ...model, dayAhead: d }, 'day', to)!;
+    expect(mixed.ghi.slice(0, 119)).toEqual(d.ghi.slice(0, 119));
+    expect(mixed.ghi.slice(120)).toEqual(model.ghi.slice(120));
+    expect(withLead({ ...model, dayAhead: null }, 'day', to)).toBeNull();
+    expect(withLead(model, 'short', to)).toBe(model);
+  });
+
+  it('finds the window end from the latest observation', () => {
+    expect(windowEnd({ ghi: { t: [0, 60], y: [1, 1] }, accum: { t: [0, 120], y: [0, 0] } })).toBe(180);
+    expect(windowEnd({})).toBeNull();
+  });
+});
+
+describe('renderScores', () => {
+  const to = model.t[0] + 36 * 3600;
+  const t = Array.from({ length: 1440 }, (_, i) => to - 86_400 + i * 60);
+  const c = compare({ ghi: { t, y: t.map(() => 100) } }, model, LAT, LON);
+
+  it('lays out one column per lead and dashes a missing lead', () => {
+    const html = renderScores([{ label: 'Short-range', c }, { label: 'Day-ahead <b>', c: null }], 'si');
+    expect(html.match(/<th scope="col">/g)).toHaveLength(4);
+    expect(html).toContain('Day-ahead &lt;b&gt;');
+    expect(html).toContain('100 <span class="muted">mean</span>');
+    expect(html).toContain('(mm)');
+    expect(renderScores([{ label: 'x', c: null }], 'si')).toBe('');
   });
 });
