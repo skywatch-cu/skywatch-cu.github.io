@@ -1,0 +1,112 @@
+---
+/**
+ * Instrument switcher for the instrument pages: every instrument, grouped by class, with the
+ * current one marked. A sticky sidebar on wide screens; a collapsible list above the content on
+ * narrow ones (an inline script closes it before first paint, so it never flashes open).
+ */
+import { CATEGORY_LABEL, INSTRUMENTS, type Category } from '../data/instruments.ts';
+
+interface Props {
+  current: string;
+}
+const { current } = Astro.props;
+const categories = Object.keys(CATEGORY_LABEL) as Category[];
+---
+
+<details class="inst-nav" open>
+  <summary>All instruments</summary>
+  <nav aria-label="Instruments">
+    <a class="all" href="/instruments/">Overview</a>
+    {
+      categories.map((c) => (
+        <section>
+          <p class="grp" id={`nav-${c}`}>{CATEGORY_LABEL[c]}</p>
+          <ul aria-labelledby={`nav-${c}`}>
+            {INSTRUMENTS.filter((i) => i.category === c).map((i) => (
+              <li>
+                <a href={`/instruments/${i.id}/`} aria-current={i.id === current ? 'page' : undefined}>
+                  {i.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    }
+  </nav>
+</details>
+
+<script is:inline>
+  // Collapse on narrow screens; keep open (and the summary hidden) on wide ones.
+  (() => {
+    const d = document.currentScript.previousElementSibling;
+    const mq = matchMedia('(min-width: 60rem)');
+    const sync = () => (d.open = mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+  })();
+</script>
+
+<style>
+  .inst-nav {
+    font-size: var(--step--1);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  summary {
+    cursor: pointer;
+    padding: 0.6rem 0.9rem;
+    font-weight: 600;
+  }
+  nav {
+    padding: 0 0.9rem 0.75rem;
+  }
+  .all {
+    display: inline-block;
+    margin-bottom: 0.25rem;
+  }
+  .grp {
+    font-size: inherit;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin: 0.9rem 0 0.3rem;
+  }
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  li a {
+    display: block;
+    padding: 0.3rem 0.6rem;
+    margin-inline: -0.6rem;
+    border-left: 3px solid transparent;
+    border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  li a:hover {
+    background: color-mix(in srgb, var(--zenith) 8%, transparent);
+  }
+  li a[aria-current='page'] {
+    border-left-color: var(--gold);
+    background: color-mix(in srgb, var(--zenith) 12%, transparent);
+    font-weight: 600;
+  }
+
+  @media (min-width: 60rem) {
+    .inst-nav {
+      position: sticky;
+      top: 1.5rem;
+      border: 0;
+      background: none;
+    }
+    summary {
+      display: none;
+    }
+    nav {
+      padding: 0;
+    }
+  }
+</style>
