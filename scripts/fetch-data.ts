@@ -2,7 +2,7 @@
  * Build-time data fetch from the legacy Skywatch server.
  *
  * Writes:
- *   .cache/snapshot.json          current readings, today's plot images, special-event list
+ *   .cache/snapshot.json          current readings, today's plot images (instruments without a series), special-event list
  *   public/data/series/<id>.json  last 24 h of each logged instrument, 1-min bins
  *   public/data/forecast.json     NWS forecast, hourly forecast, alerts and forecast discussion
  *   public/data/hrrr.json         HRRR 15-min irradiance and precipitation from Open-Meteo
@@ -130,7 +130,8 @@ async function main() {
     errors,
   };
 
-  const pages = INSTRUMENTS.filter((i) => i.legacyPage).map((i) => i.legacyPage!);
+  // Server-rendered plots are shown only for instruments without a logged series.
+  const pages = INSTRUMENTS.filter((i) => i.legacyPage && !i.series).map((i) => i.legacyPage!);
   const jobs: Promise<void>[] = [
     get('/').then((html) => {
       snapshot.status = parseStatus(html);
