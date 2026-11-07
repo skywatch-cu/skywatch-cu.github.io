@@ -11,8 +11,8 @@ export function getStaticPaths() {
 
 const { inst } = Astro.props as { inst: Instrument };
 const snap = getSnapshot();
-const images = inst.legacyPage ? (snap.images[inst.legacyPage] ?? []) : [];
 const series = inst.series;
+const images = !series && inst.legacyPage ? (snap.images[inst.legacyPage] ?? []) : [];
 // Plot only the radiometric/physical fields; housekeeping (sensor temperature) stays in the file.
 const mainKeys = series
   ? [...series.fields.filter((f) => f.unit !== 'K').map((f) => f.key), ...(series.derived ?? []).map((d) => d.key)]
@@ -44,28 +44,31 @@ const rawPattern = series ? `${LEGACY_ORIGIN}/data/${series.dir}/${series.prefix
       )
     }
 
-    <section class="block">
-      <h2>{series ? 'Today’s plots from the observatory server' : 'Today'}</h2>
-      {
-        images.length ? (
-          <div class="plots">
-            {images.map((im) => (
-              <figure>
-                <a href={im.src}>
-                  <img class="plot-img" src={im.src} alt={im.alt} loading="lazy" decoding="async" />
-                </a>
-                <figcaption>{im.alt}</figcaption>
-              </figure>
-            ))}
-          </div>
-        ) : (
-          <p class="muted">
-            Today’s plots couldn’t be retrieved at the last update. They’re also on the{' '}
-            <a href={`${LEGACY_ORIGIN}/php/${inst.legacyPage}.php`}>legacy page</a>.
-          </p>
-        )
-      }
-    </section>
+    {
+      // Instruments without a logged series fall back to the server's own plots.
+      !series && (
+        <section class="block">
+          <h2>Today</h2>
+          {images.length ? (
+            <div class="plots">
+              {images.map((im) => (
+                <figure>
+                  <a href={im.src}>
+                    <img class="plot-img" src={im.src} alt={im.alt} loading="lazy" decoding="async" />
+                  </a>
+                  <figcaption>{im.alt}</figcaption>
+                </figure>
+              ))}
+            </div>
+          ) : (
+            <p class="muted">
+              Today’s plots couldn’t be retrieved at the last update. They’re also on the{' '}
+              <a href={`${LEGACY_ORIGIN}/php/${inst.legacyPage}.php`}>legacy page</a>.
+            </p>
+          )}
+        </section>
+      )
+    }
 
     <section class="block">
       <h2>Data</h2>
