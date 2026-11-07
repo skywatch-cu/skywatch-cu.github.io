@@ -5,6 +5,7 @@
  *   .cache/snapshot.json          current readings, today's plot images, special-event list
  *   public/data/series/<id>.json  last 24 h of each logged instrument, 1-min bins
  *   public/data/forecast.json     NWS forecast, hourly forecast, alerts and forecast discussion
+ *   public/data/hrrr.json         HRRR 15-min irradiance and precipitation from Open-Meteo
  *
  * If a source fails, the previous output (restored from the Actions cache in CI) is kept,
  * so a legacy-server outage leaves stale data on the site rather than failing the deploy.
@@ -16,11 +17,13 @@ import { INSTRUMENTS, STATION, type Instrument } from '../src/data/instruments.t
 import { binSeries, denverDate, parseDat } from '../src/lib/dat.ts';
 import { LEGACY_ORIGIN, parseEvents, parsePlotImages, parseStatus } from '../src/lib/legacy.ts';
 import { DEFAULT_GRID, getBundle, NWS_USER_AGENT, resolveGrid, type ForecastBundle } from '../src/lib/providers/nws.ts';
+import { getHrrr } from '../src/lib/providers/openmeteo.ts';
 import type { Snapshot, SeriesFile } from '../src/lib/types.ts';
 
 const CACHE = new URL('../.cache/', import.meta.url);
 const SERIES_DIR = new URL('../public/data/series/', import.meta.url);
 const FORECAST_FILE = new URL('../public/data/forecast.json', import.meta.url);
+const HRRR_FILE = new URL('../public/data/hrrr.json', import.meta.url);
 const WINDOW_SEC = 86_400;
 
 async function get(path: string): Promise<string> {
@@ -141,6 +144,8 @@ async function main() {
         snapshot.images[p] = parsePlotImages(html);
       }),
     ),
+    // On failure the previous hrrr.json (restored from the Actions cache) stays in place.
+    getHrrr(STATION.lat, STATION.lon).then((m) => writeFile(HRRR_FILE, JSON.stringify(m))),
     ...INSTRUMENTS.filter((i) => i.series).map((inst) =>
       buildSeries(inst, now).then(async (file) => {
         await writeFile(new URL(`${inst.id}.json`, SERIES_DIR), JSON.stringify(file));

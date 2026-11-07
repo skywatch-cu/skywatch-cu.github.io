@@ -14,6 +14,7 @@ skywatch.colorado.edu (legacy Apache server, unchanged)
    ├─ /php/event.php            soundings list     │     ├─ .cache/snapshot.json
    └─ /data/<dir>/*_YY_MM_DD.dat raw logger files ─┘     └─ public/data/series/<id>.json (24 h, 1-min)
 api.weather.gov (NWS) ── forecast, hourly, alerts, discussion ──→ public/data/forecast.json
+api.open-meteo.com ───── HRRR 15-min irradiance, precipitation ─→ public/data/hrrr.json
                                                                   │
                                                           astro build → GitHub Pages
                                                                   │
@@ -23,6 +24,7 @@ api.weather.gov (NWS) ── forecast, hourly, alerts, discussion ──→ publ
 - The legacy server sends no CORS headers, so the browser can't fetch its data. Instead, each GitHub Actions build fetches and parses it, every 15 minutes.
 - Charts are drawn in the browser from the per-instrument JSON. Images with stable URLs (the all-sky and Front Range cameras) are hotlinked and refresh every 2 minutes on the client.
 - Forecasts come from the [NWS API](https://www.weather.gov/documentation/services-web-api), which does allow CORS. The build saves a copy for first paint, and each page then fetches the NWS directly and refreshes every 15 minutes. Forecasts therefore stay current even when a site rebuild is late.
+- The forecast-vs-observed comparison on the forecast page uses NOAA's HRRR model through [Open-Meteo](https://open-meteo.com/en/docs) (CC BY 4.0, credit required), which also allows CORS. Past hours are short-range forecasts stitched from successive runs. The page pairs them with the pyranometer, SPN1 and rain gauge series, and computes bias, RMSE and insolation in the browser (`src/lib/verify.ts`).
 - If the legacy server is down, the previous snapshot is restored from the Actions cache. The site then shows stale data with a warning rather than failing.
 - [`docs/data-contract.md`](docs/data-contract.md) is the proposal for a direct data feed (Phase 2), to give to the server administrator.
 
@@ -51,10 +53,13 @@ npm run build        # static site in dist/
 | NWS requests, parsing, contact User-Agent | `src/lib/providers/nws.ts` (and `tests/nws.test.ts`) |
 | Forecast markup (shared by build and browser) | `src/lib/render/forecast.ts` |
 | Forecast page | `src/pages/forecast.astro`, `src/components/Forecast*.astro`, `HourlyForecast.astro`, `AlertBanner.astro` |
+| HRRR requests (Open-Meteo) | `src/lib/providers/openmeteo.ts` |
+| Forecast-vs-observed statistics | `src/lib/verify.ts`, `src/lib/render/verify.ts` (and `tests/verify.test.ts`) |
+| Forecast-vs-observed charts | `src/components/ForecastVsObserved.astro` |
 
 To add a logged instrument, add a `series` block to its entry in `src/data/instruments.ts`. Give it the `/data/` directory, the file prefix and the column indices. Its chart and JSON are then generated automatically.
 
-To add another external data source (Open-Meteo, radar, soundings), add a module next to `src/lib/providers/nws.ts`. It should have pure normalizers into SI types, tests against saved responses, and fetch functions that work in both Node and the browser. Then add a renderer and a component that subscribes to live updates, as in `src/lib/forecast-client.ts`.
+To add another external data source (radar, soundings), add a module next to `src/lib/providers/nws.ts`. It should have pure normalizers into SI types, tests against saved responses, and fetch functions that work in both Node and the browser. Then add a renderer and a component that subscribes to live updates, as in `src/lib/forecast-client.ts`.
 
 ## Deployment
 

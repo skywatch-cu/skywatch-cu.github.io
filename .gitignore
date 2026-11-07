@@ -7,3 +7,4 @@ dist/
 .cache/
 public/data/series/
 public/data/forecast.json
+public/data/hrrr.json

@@ -5,6 +5,7 @@ import UnitToggle from '../components/UnitToggle.astro';
 import ForecastWeek from '../components/ForecastWeek.astro';
 import HourlyForecast from '../components/HourlyForecast.astro';
 import ForecastDiscussion from '../components/ForecastDiscussion.astro';
+import ForecastVsObserved from '../components/ForecastVsObserved.astro';
 import { getForecastBundle } from '../lib/snapshot.ts';
 import { fmtTime } from '../lib/render/forecast.ts';
 
@@ -15,7 +16,7 @@ const updated = b?.forecast?.updated;
 
 <Base
   title="Forecast"
-  description="National Weather Service forecast for the CU Boulder Skywatch Observatory: hourly, seven-day, active alerts and the Boulder forecast discussion."
+  description="National Weather Service forecast for the CU Boulder Skywatch Observatory: hourly, seven-day, active alerts, the Boulder forecast discussion, and the HRRR model against the observatory's measurements."
 >
   <div class="wrap section">
     <div class="head">
@@ -39,6 +40,15 @@ const updated = b?.forecast?.updated;
       <h2 id="week-h">Seven days</h2>
       <p class="muted small">Bars span each day’s low to high on a scale shared by the whole week. Select a day for the full wording.</p>
       <ForecastWeek />
+    </section>
+
+    <section aria-labelledby="fvo-h" class="block">
+      <h2 id="fvo-h">Forecast vs. observed</h2>
+      <p class="muted">
+        How well did the forecast model do over the observatory? NOAA’s High-Resolution Rapid Refresh (HRRR) model, run every
+        hour on a 3 km grid, against the observatory’s own sunlight and precipitation measurements over the last 24 hours.
+      </p>
+      <ForecastVsObserved />
     </section>
 
     <section aria-labelledby="afd-h" class="block">
