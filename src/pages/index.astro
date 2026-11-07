@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import SkyDisc from '../components/SkyDisc.astro';
+import SkyCam from '../components/SkyCam.astro';
 import Readings from '../components/Readings.astro';
 import TimeSeries from '../components/TimeSeries.astro';
 import AlertBanner from '../components/AlertBanner.astro';
@@ -11,7 +11,7 @@ import ForecastOutlook from '../components/ForecastOutlook.astro';
   <div class="wrap"><AlertBanner /></div>
   <section class="hero">
     <div class="wrap hero-grid">
-      <SkyDisc />
+      <SkyCam caption='Front Range sky camera, refreshed every 2 minutes. The all-sky view is on the <a href="/sky/">Sky</a> page.' />
       <div>
         <h1>The sky over East Campus</h1>
         <p class="lede">
@@ -103,7 +103,7 @@ import ForecastOutlook from '../components/ForecastOutlook.astro';
   }
   @media (min-width: 60rem) {
     .hero-grid {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
   }
   h1 {

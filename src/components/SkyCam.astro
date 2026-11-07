@@ -1,0 +1,32 @@
+---
+/**
+ * The live Front Range sky camera: a fixed 16:9 view toward the foothills.
+ * The image has a stable URL on the legacy server, so it refreshes client-side.
+ */
+import { LEGACY_ORIGIN } from '../lib/legacy.ts';
+
+interface Props {
+  caption?: string;
+}
+const { caption = 'Front Range sky camera, refreshed every 2 minutes.' } = Astro.props;
+const src = `${LEGACY_ORIGIN}/data/skycam/fixed.jpg`;
+---
+
+<figure class="skycam">
+  <img class="cam" data-live src={src} alt="Current view of the sky and the Front Range foothills from the observatory" width="3840" height="2160" />
+  {caption && <figcaption><Fragment set:html={caption} /></figcaption>}
+</figure>
+
+<script>
+  import '../lib/live-images.ts';
+</script>
+
+<style>
+  .cam {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius);
+    background: linear-gradient(#2a4a72, #0c1a2b);
+  }
+</style>

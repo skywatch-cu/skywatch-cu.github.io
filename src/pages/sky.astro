@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import SkyDisc from '../components/SkyDisc.astro';
-import { LEGACY_ORIGIN } from '../lib/legacy.ts';
+import SkyCam from '../components/SkyCam.astro';
 ---
 
 <Base title="Sky" description="Live all-sky and Front Range camera images from the CU Boulder Skywatch Observatory.">
@@ -18,9 +18,7 @@ import { LEGACY_ORIGIN } from '../lib/legacy.ts';
       <section aria-labelledby="cam-h">
         <h2 id="cam-h">Front Range camera</h2>
         <p class="muted">A fixed view toward the foothills, refreshed every 2 minutes.</p>
-        <figure>
-          <img class="cam" data-live src={`${LEGACY_ORIGIN}/data/skycam/fixed.jpg`} alt="Current Front Range snapshot from the observatory" />
-        </figure>
+        <SkyCam caption="" />
       </section>
     </div>
     <p class="small muted">
@@ -40,11 +38,5 @@ import { LEGACY_ORIGIN } from '../lib/legacy.ts';
     .grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-  }
-  .cam {
-    display: block;
-    width: 100%;
-    border-radius: var(--radius);
-    background: var(--surface);
   }
 </style>
