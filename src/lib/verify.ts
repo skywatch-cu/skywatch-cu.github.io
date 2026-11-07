@@ -125,16 +125,37 @@ export interface Comparison {
 
 const MJ = 1e-6;
 
+/** End (Unix s) of the latest observed 1-min bin across the inputs, or null without observations. */
+export function windowEnd(obs: ObservedInputs): number | null {
+  const ends = [obs.ghi, obs.diffuse, obs.accum].filter(Boolean).map((s) => s!.t.at(-1)!);
+  return ends.length ? Math.max(...ends) + 60 : null;
+}
+
+export type Lead = 'short' | 'day';
+
+/**
+ * The model series to score and plot for one lead time. For `day`, intervals ending by `to`
+ * take the day-ahead values; later intervals keep the latest run, so the forecast ahead is
+ * always the newest one. Returns null when the day-ahead values are missing.
+ */
+export function withLead(model: ModelSeries, lead: Lead, to: number): ModelSeries | null {
+  if (lead === 'short') return model;
+  const d = model.dayAhead;
+  if (!d || !d.ghi.some((x) => x != null)) return null;
+  const past = model.t.map((s) => s + model.intervalSec <= to);
+  const mix = (a: (number | null)[], b: (number | null)[]) => a.map((x, i) => (past[i] ? b[i] : x));
+  return { ...model, ghi: mix(model.ghi, d.ghi), diffuse: mix(model.diffuse, d.diffuse), precip: mix(model.precip, d.precip) };
+}
+
 /**
  * Pair the model with the observations over the last 24 h of observations. Scores use daytime
  * intervals only (solar elevation above 0° at the midpoint), since night-time zeros would
  * shrink the RMSE without saying anything about the forecast.
  */
 export function compare(obs: ObservedInputs, model: ModelSeries, lat: number, lon: number): Comparison | null {
-  const ends = [obs.ghi, obs.diffuse, obs.accum].filter(Boolean).map((s) => s!.t.at(-1)!);
-  if (!ends.length) return null;
+  const to = windowEnd(obs);
+  if (to == null) return null;
   const dt = model.intervalSec;
-  const to = Math.max(...ends) + 60;
   const from = to - 86_400;
   const inWin = model.t.map((s) => s >= from && s + dt <= to);
   const mid = model.t.map((s) => s + dt / 2);
