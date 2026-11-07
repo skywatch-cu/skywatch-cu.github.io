@@ -45,6 +45,7 @@ jobs:
             .cache
             public/data/series
             public/data/forecast.json
+            public/data/hrrr.json
           key: skywatch-data-${{ github.run_id }}
           restore-keys: skywatch-data-
 

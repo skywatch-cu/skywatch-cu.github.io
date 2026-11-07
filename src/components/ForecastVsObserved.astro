@@ -1,0 +1,260 @@
+---
+/**
+ * HRRR forecast against the station's own measurements: the last 24 h observed, with the
+ * model's short-range forecasts over the same period and its latest run continuing ahead.
+ * Drawn in the browser from public/data/series/*.json and public/data/hrrr.json; the model
+ * is then refetched from Open-Meteo directly so its forecast stays current.
+ */
+import { getSnapshot } from '../lib/snapshot.ts';
+
+const snap = getSnapshot();
+const v = (id: string) => snap.series[id]?.generatedAt ?? snap.fetchedAt;
+const sources = { ghi: v('pyranometer'), diffuse: v('spn1'), accum: v('precipitation-gauge') };
+---
+
+<div class="fvo" data-sources={JSON.stringify(sources)}>
+  <dl class="fvo-stats" aria-live="polite"></dl>
+  <figure class="fvo-fig">
+    <div class="fvo-plot" data-chart="sun" style="min-height:320px">
+      <p class="muted small">Loading the comparison…</p>
+    </div>
+    <figcaption>
+      Sunlight on a horizontal surface. Solid lines: the observatory’s pyranometer (global) and SPN1 (diffuse),
+      1-minute means. Dashed lines: HRRR, 15-minute means. The vertical line marks the latest observation.
+    </figcaption>
+  </figure>
+  <figure class="fvo-fig fvo-precip">
+    <div class="fvo-plot" data-chart="precip" style="min-height:220px"></div>
+    <figcaption>
+      Precipitation accumulated from the start of the window: the observatory’s gauge (solid) and HRRR (dashed).
+    </figcaption>
+  </figure>
+  <p class="small muted fvo-src"></p>
+</div>
+
+<script>
+  import uPlot from 'uplot';
+  import 'uplot/dist/uPlot.min.css';
+  import { STATION } from '../data/instruments.ts';
+  import { getHrrr, type ModelSeries } from '../lib/providers/openmeteo.ts';
+  import { renderScores } from '../lib/render/verify.ts';
+  import { fmtTime } from '../lib/render/forecast.ts';
+  import type { SeriesFile } from '../lib/types.ts';
+  import { getUnits, precipUnit, precipValue } from '../lib/units.ts';
+  import { compare, type ObservedInputs } from '../lib/verify.ts';
+
+  const root = document.querySelector<HTMLElement>('.fvo');
+  if (root) {
+    const src: Record<'ghi' | 'diffuse' | 'accum', string> = JSON.parse(root.dataset.sources!);
+    const sunHost = root.querySelector<HTMLElement>('[data-chart="sun"]')!;
+    const pHost = root.querySelector<HTMLElement>('[data-chart="precip"]')!;
+    const stats = root.querySelector<HTMLElement>('.fvo-stats')!;
+    const note = root.querySelector<HTMLElement>('.fvo-src')!;
+    const pCap = root.querySelector<HTMLElement>('.fvo-precip figcaption')!;
+    const css = (n: string) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const hhmm = (ts: number) =>
+      new Date(ts * 1000).toLocaleString('en-US', { timeZone: 'America/Denver', weekday: 'short', hour: 'numeric', minute: '2-digit' });
+    /** Hours of model forecast shown past the latest observation. */
+    const AHEAD = 24 * 3600;
+
+    let obs: ObservedInputs = {};
+    let model: ModelSeries | null = null;
+    let live: boolean | null = null;
+    const plots: uPlot[] = [];
+
+    const series = (id: string, v: string): Promise<SeriesFile | null> =>
+      fetch(`/data/series/${id}.json?v=${encodeURIComponent(v)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null);
+
+    /** Vertical rule at `x` (the latest observation). */
+    const nowLine = (x: number) => (u: uPlot) => {
+      const px = u.valToPos(x, 'x', true);
+      const { top, height } = u.bbox;
+      u.ctx.save();
+      u.ctx.strokeStyle = css('--ink-soft');
+      u.ctx.setLineDash([2, 3]);
+      u.ctx.lineWidth = devicePixelRatio;
+      u.ctx.beginPath();
+      u.ctx.moveTo(px, top);
+      u.ctx.lineTo(px, top + height);
+      u.ctx.stroke();
+      u.ctx.restore();
+    };
+
+    /** `minTop`: smallest upper bound of the y-axis, so near-zero series don't fill the plot. */
+    const baseOpts = (host: HTMLElement, height: number, yLabel: string, xMax: number, now: number, minTop = 1): uPlot.Options => {
+      const ink = css('--ink-soft');
+      const grid = css('--rule');
+      return {
+        width: host.clientWidth,
+        height,
+        tzDate: (ts) => uPlot.tzDate(new Date(ts * 1e3), 'America/Denver'),
+        cursor: { drag: { x: true, y: false }, points: { size: 7 } },
+        scales: { x: { time: true, range: (_u, min) => [min, xMax] }, y: { range: (_u, _min, max) => [0, Math.max(minTop, max * 1.05)] } },
+        axes: [
+          { stroke: ink, grid: { stroke: grid, width: 1 }, ticks: { stroke: grid } },
+          { stroke: ink, grid: { stroke: grid, width: 1 }, ticks: { stroke: grid }, label: yLabel, labelSize: 24, size: 56 },
+        ],
+        hooks: { draw: [nowLine(now)] },
+        series: [{ label: 'Time', value: (_u, v) => (v == null ? '–' : hhmm(v)) }],
+      };
+    };
+
+    const line = (label: string, color: string, unit: string, dashed: boolean, digits = 0): uPlot.Series => ({
+      label,
+      stroke: css(color),
+      width: dashed ? 2 : 1.5,
+      dash: dashed ? [6, 4] : undefined,
+      spanGaps: dashed,
+      points: { show: false },
+      value: (_u, v) => (v == null ? '–' : `${v.toFixed(digits)} ${unit}`),
+    });
+
+    const draw = () => {
+      if (!model) return;
+      const c = compare(obs, model, STATION.lat, STATION.lon);
+      plots.splice(0).forEach((p) => p.destroy());
+      if (!c) {
+        sunHost.innerHTML = '<p class="muted small">The observations didn’t load. Reload the page to try again.</p>';
+        pHost.replaceChildren();
+        stats.replaceChildren();
+        return;
+      }
+      const u = getUnits();
+      stats.innerHTML = renderScores(c, u);
+
+      const xMax = Math.min(c.to + AHEAD, (model.t.at(-1) ?? c.to) + model.intervalSec);
+      const show = model.t.map((s) => s >= c.from && s + model!.intervalSec <= xMax);
+      const mT = c.modelMid.filter((_, i) => show[i]);
+      const pick = <T,>(xs: T[]) => xs.filter((_, i) => show[i]);
+      const clip = (s?: { t: number[]; y: (number | null)[] }) => {
+        if (!s) return [[], []] as [number[], (number | null)[]];
+        const k = s.t.map((x) => x >= c.from);
+        return [s.t.filter((_, i) => k[i]), s.y.filter((_, i) => k[i])] as [number[], (number | null)[]];
+      };
+
+      // Irradiance: observed 1-min series and model interval means (plotted at interval midpoints).
+      sunHost.replaceChildren();
+      const sun = uPlot.join([
+        clip(obs.ghi) as uPlot.AlignedData,
+        clip(obs.diffuse) as uPlot.AlignedData,
+        [mT, pick(model.ghi)],
+        [mT, pick(model.diffuse)],
+      ]);
+      const W = 'W m⁻²';
+      const sOpts = baseOpts(sunHost, 300, `Irradiance (${W})`, xMax, c.to);
+      sOpts.series.push(
+        line('Observed global', '--c-sw', W, false),
+        line('Observed diffuse', '--c-diffuse', W, false),
+        line('HRRR global', '--c-sw', W, true),
+        line('HRRR diffuse', '--c-diffuse', W, true),
+      );
+      plots.push(new uPlot(sOpts, sun, sunHost));
+
+      // Precipitation, accumulated from the window start; model totals plotted at interval ends.
+      pHost.replaceChildren();
+      const unit = precipUnit(u);
+      const conv = (x: number | null) => (x == null ? null : precipValue(x, u));
+      const accT = obs.accum ? obs.accum.t.filter((_, i) => c.precipObsCum[i] != null) : [];
+      const accY = c.precipObsCum.filter((x) => x != null).map(conv);
+      const mEnd = model.t.map((s) => s + model!.intervalSec).filter((_, i) => show[i]);
+      const mCum = pick(c.precipModelCum).map(conv);
+      const anyPrecip = [...accY, ...mCum].some((x) => (x ?? 0) > 0);
+      pCap.hidden = !anyPrecip;
+      if (!anyPrecip) {
+        pHost.style.minHeight = '';
+        pHost.innerHTML = `<p class="muted small fvo-none">No precipitation fell in the last 24 hours, and HRRR forecasts none through ${hhmm(xMax)}.</p>`;
+      } else {
+        pHost.style.minHeight = '220px';
+        const pOpts = baseOpts(pHost, 200, `Accumulated (${unit})`, xMax, c.to, u === 'us' ? 0.1 : 2.5);
+        pOpts.series.push(line('Observed', '--c-precip', unit, false, 2), line('HRRR', '--c-precip', unit, true, 2));
+        plots.push(new uPlot(pOpts, uPlot.join([[accT, accY], [mEnd, mCum]] as uPlot.AlignedData[]), pHost));
+      }
+
+      const cell = `${model.cell.lat.toFixed(3)}° N, ${Math.abs(model.cell.lon).toFixed(3)}° W, ${model.cell.elevation.toFixed(0)} m`;
+      note.innerHTML =
+        `Statistics cover the 24 hours to ${hhmm(c.to)}. Bias and RMSE use 15-minute means while the sun is above the horizon; ` +
+        `bias is HRRR minus observed. Past HRRR values are short-range forecasts stitched from the first hours of successive hourly runs` +
+        `${model.runInit ? `; the forecast ahead is from the run initialised ${fmtTime(model.runInit)}` : ''}. ` +
+        `HRRR grid cell centred at ${cell}. Model data: NOAA HRRR via <a href="https://open-meteo.com/">Open-Meteo.com</a> (CC BY 4.0).` +
+        (live === false ? ' Showing the copy saved at the last site update; Open-Meteo didn’t respond.' : '');
+    };
+
+    const resize = () => plots.forEach((p) => p.setSize({ width: p.root.parentElement!.clientWidth, height: p.height }));
+
+    (async () => {
+      const [ghi, spn, gauge, saved] = await Promise.all([
+        series('pyranometer', src.ghi),
+        series('spn1', src.diffuse),
+        series('precipitation-gauge', src.accum),
+        fetch('/data/hrrr.json', { cache: 'no-cache' })
+          .then((r) => (r.ok ? (r.json() as Promise<ModelSeries>) : null))
+          .catch(() => null),
+      ]);
+      obs = {
+        ghi: ghi ? { t: ghi.t, y: ghi.data.sw_down } : undefined,
+        diffuse: spn ? { t: spn.t, y: spn.data.sw_diffuse } : undefined,
+        accum: gauge ? { t: gauge.t, y: gauge.data.accum } : undefined,
+      };
+      model = saved;
+      draw();
+      try {
+        model = await getHrrr(STATION.lat, STATION.lon);
+        live = true;
+      } catch {
+        live = false;
+      }
+      if (!model) sunHost.innerHTML = '<p class="muted small">The HRRR forecast didn’t load. Reload the page to try again.</p>';
+      draw();
+    })();
+
+    new ResizeObserver(resize).observe(root);
+    window.addEventListener('unitchange', draw);
+    window.addEventListener('themechange', draw);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', draw);
+  }
+</script>
+
+<style>
+  .fvo-stats {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem 1.5rem;
+    margin: 0 0 1.25rem;
+  }
+  @media (min-width: 48rem) {
+    .fvo-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .fvo-stats :global(dt) {
+    font-weight: 600;
+  }
+  .fvo-stats :global(dd) {
+    margin: 0.1rem 0 0;
+    color: var(--ink-soft);
+  }
+  .fvo-fig {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 1rem 1rem 0.75rem;
+    margin: 0 0 1.25rem;
+  }
+  .fvo-plot :global(.fvo-none) {
+    margin: 0;
+  }
+  .fvo-plot {
+    width: 100%;
+    min-width: 0;
+  }
+  .fvo :global(.u-legend) {
+    font-size: var(--step--1);
+    color: var(--ink);
+    text-align: left;
+  }
+  .fvo :global(.u-select) {
+    background: color-mix(in srgb, var(--gold) 25%, transparent);
+  }
+</style>
