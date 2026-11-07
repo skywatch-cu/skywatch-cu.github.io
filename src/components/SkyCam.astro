@@ -4,16 +4,20 @@
  * The image has a stable URL on the legacy server, so it refreshes client-side.
  */
 import { LEGACY_ORIGIN } from '../lib/legacy.ts';
+import { bucket, camSrcset } from '../lib/camera.ts';
 
 interface Props {
   caption?: string;
+  /** Rendered width of the image, for choosing among the resized copies. */
+  sizes?: string;
 }
-const { caption = 'Front Range sky camera, refreshed every 2 minutes.' } = Astro.props;
+const { caption = 'Front Range sky camera, refreshed every 2 minutes.', sizes = '100vw' } = Astro.props;
 const src = `${LEGACY_ORIGIN}/data/skycam/fixed.jpg`;
+const FULL_WIDTH = 3840;
 ---
 
 <figure class="skycam">
-  <img class="cam" data-live src={src} alt="Current view of the sky and the Front Range foothills from the observatory" width="3840" height="2160" />
+  <img class="cam" data-live data-full-width={FULL_WIDTH} src={src} srcset={camSrcset(src, FULL_WIDTH, bucket())} sizes={sizes} alt="Current view of the sky and the Front Range foothills from the observatory" width={FULL_WIDTH} height="2160" />
   {caption && <figcaption><Fragment set:html={caption} /></figcaption>}
 </figure>
 
