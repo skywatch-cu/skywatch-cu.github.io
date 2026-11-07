@@ -27,13 +27,7 @@ const src = `${LEGACY_ORIGIN}/data/allsky/allsky_current.jpg`;
 </figure>
 
 <script>
-  // Reload stable-URL camera images every 2 min (the legacy page did the same).
-  const imgs = document.querySelectorAll<HTMLImageElement>('img[data-live]');
-  const base = new Map([...imgs].map((i) => [i, i.src]));
-  setInterval(() => {
-    if (document.hidden) return;
-    for (const [img, src] of base) img.src = `${src}?t=${Date.now()}`;
-  }, 120_000);
+  import '../lib/live-images.ts';
 </script>
 
 <style>
