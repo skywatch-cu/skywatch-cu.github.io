@@ -17,7 +17,10 @@ const FULL_WIDTH = 3840;
 ---
 
 <figure class="skycam">
-  <img class="cam" data-live data-full-width={FULL_WIDTH} src={src} srcset={camSrcset(src, FULL_WIDTH, bucket())} sizes={sizes} alt="Current view of the sky and the Front Range foothills from the observatory" width={FULL_WIDTH} height="2160" />
+  <div class="frame">
+    <img class="cam" data-live data-full-width={FULL_WIDTH} src={src} srcset={camSrcset(src, FULL_WIDTH, bucket())} sizes={sizes} alt="Current view of the sky and the Front Range foothills from the observatory" width={FULL_WIDTH} height="2160" />
+    <span class="mask" aria-hidden="true"></span>
+  </div>
   {caption && <figcaption><Fragment set:html={caption} /></figcaption>}
 </figure>
 
@@ -26,6 +29,24 @@ const FULL_WIDTH = 3840;
 </script>
 
 <style>
+  .frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius);
+  }
+  /*
+   * Covers the BoulderCast logo burned into the camera's caption strip. In the 3840 × 2160 frame
+   * the strip spans y = 2010–2159 in rgb(185 130 73); the logo spans x = 47–565, and the CU logo
+   * begins at x = 652. Percentages keep the patch on the logo at any rendered size.
+   */
+  .mask {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: calc(610 / 3840 * 100%);
+    height: calc(150 / 2160 * 100%);
+    background: rgb(185 130 73);
+  }
   .cam {
     display: block;
     width: 100%;
